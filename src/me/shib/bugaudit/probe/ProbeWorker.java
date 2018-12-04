@@ -49,7 +49,7 @@ public final class ProbeWorker {
     }
 
     private void applyPriorityFilter(SourceScan sourceScan, List<PriorityFilter> filters) {
-        for (Bug bug : sourceScan.getVulnerabilities()) {
+        for (Bug bug : sourceScan.getBugs()) {
             for (PriorityFilter filter : filters) {
                 boolean langMatch = filter.getLang() == null || filter.getLang() == sourceScan.getLang();
                 boolean toolMatch = filter.getTool() == null || filter.getTool().equalsIgnoreCase(sourceScan.getTool());

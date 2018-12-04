@@ -6,7 +6,7 @@
     <groupId>me.shib.bugaudit</groupId>
     <artifactId>bugaudit-probe</artifactId>
     <version>0.0.1</version>
-    <name>BugAudit - Probe</name>
+    <name>BugAudit Probe</name>
     <description>The bug auditing tools framework</description>
     <url>https://github.com/bugaudit/bugaudit-probe</url>
 

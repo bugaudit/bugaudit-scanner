@@ -4,14 +4,14 @@ import java.util.*;
 
 public abstract class SourceScan {
 
-    private Map<String, Bug> vulnerabilityMap;
+    private Map<String, Bug> bugMap;
     private GitRepo repo;
 
     public SourceScan() {
-        this.vulnerabilityMap = new HashMap<>();
+        this.bugMap = new HashMap<>();
     }
 
-    protected void addVulnerability(Bug bug) {
+    protected void addBug(Bug bug) {
         bug.addTag(repo.toString());
         bug.addTag(getTool());
         bug.addTag(getLang().toString());
@@ -21,7 +21,7 @@ public abstract class SourceScan {
         for (String k : keyList) {
             key.append(k).append(";");
         }
-        vulnerabilityMap.put(key.toString(), bug);
+        bugMap.put(key.toString(), bug);
     }
 
     public GitRepo getRepo() {
@@ -32,8 +32,8 @@ public abstract class SourceScan {
         this.repo = repo;
     }
 
-    public List<Bug> getVulnerabilities() {
-        return new ArrayList<>(vulnerabilityMap.values());
+    public List<Bug> getBugs() {
+        return new ArrayList<>(bugMap.values());
     }
 
     public abstract Lang getLang();

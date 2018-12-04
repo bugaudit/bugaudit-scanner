@@ -4,6 +4,7 @@ public final class Content {
 
     String name;
     String value;
+
     public Content(ContentType contentType, String value) {
         this.name = contentType.toString();
         this.value = value;
