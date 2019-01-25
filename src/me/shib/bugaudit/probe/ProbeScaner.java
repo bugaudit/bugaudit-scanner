@@ -50,7 +50,7 @@ public abstract class ProbeScaner {
 
     public static synchronized List<Bug> bugsFromScanners() {
         List<Bug> bugs = new ArrayList<>();
-        List<ProbeScaner> scanners = ProbeScaner.getScanners(new GitRepo());
+        List<ProbeScaner> scanners = ProbeScaner.getScanners(GitRepo.getRepo());
         for (ProbeScaner scanner : scanners) {
             System.out.println("Now running scanner: " + scanner.getTool());
             scanner.scan();

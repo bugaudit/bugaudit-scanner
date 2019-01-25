@@ -8,38 +8,28 @@ public final class GitRepo {
     private static final String gitUrlEnv = "GIT_URL";
     private static final String gitBranchEnv = "GIT_BRANCH";
 
+    private static GitRepo gitRepo;
+
     private String host;
     private String owner;
     private String repoName;
     private String branch;
 
-    public GitRepo() {
-        this(getGitUrlFromEnv());
-    }
-
-    public GitRepo(String url) {
-        this(url, null);
-    }
-
-    public GitRepo(String url, String branch) {
+    private GitRepo(String url, String branch) {
         url = cleanRepoUrl(url);
         String[] urlSplit = url.split("/");
         this.host = urlSplit[0];
         this.repoName = urlSplit[urlSplit.length - 1];
         this.owner = url.replaceFirst(host + "/", "");
         this.owner = removeEndingSequence(owner, "/" + repoName);
-        this.branch = getGitBranchFromEnv(branch);
+        this.branch = branch;
     }
 
-    public GitRepo(String host, String owner, String repoName) {
-        this(host, owner, repoName, null);
-    }
-
-    public GitRepo(String host, String owner, String repoName, String branch) {
-        this.host = cleanHost(host);
-        this.owner = owner;
-        this.repoName = repoName;
-        this.branch = getGitBranchFromEnv(branch);
+    static GitRepo getRepo() {
+        if (gitRepo == null) {
+            gitRepo = new GitRepo(getGitUrlFromEnv(), getGitBranchFromEnv());
+        }
+        return gitRepo;
     }
 
     private static String runGitCommang(String gitCommand) throws BugAuditException {
@@ -87,18 +77,16 @@ public final class GitRepo {
         return gitUrl;
     }
 
-    private static String getGitBranchFromEnv(String gitBranch) {
+    private static String getGitBranchFromEnv() {
+        String gitBranch = System.getenv(gitBranchEnv);
         if (gitBranch == null) {
-            gitBranch = System.getenv(gitBranchEnv);
+            try {
+                gitBranch = getGitBranchFromLocalRepo();
+            } catch (BugAuditException e) {
+                gitBranch = null;
+            }
             if (gitBranch == null) {
-                try {
-                    gitBranch = getGitBranchFromLocalRepo();
-                } catch (BugAuditException e) {
-                    gitBranch = null;
-                }
-                if (gitBranch == null) {
-                    throw new UnsupportedOperationException("Expected " + gitBranchEnv + " environmental variable.");
-                }
+                throw new UnsupportedOperationException("Expected " + gitBranchEnv + " environmental variable.");
             }
         }
         return gitBranch;
