@@ -33,6 +33,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <distributionManagement>
+        <repository>
+            <id>bintray-shibme-maven</id>
+            <name>shibme-maven</name>
+            <url>https://api.bintray.com/maven/shibme/maven/${project.artifactId}/;publish=1;override=1</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <sourceDirectory>src</sourceDirectory>
         <plugins>
@@ -47,37 +55,42 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.1.0</version>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
                 <configuration>
-                    <finalName>runnable-${project.artifactId}-${project.version}</finalName>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>me.shib.bundlerauditjira.Main</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+            <!--<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
+                        <id>attach-javadocs</id>
                         <goals>
-                            <goal>single</goal>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.2</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>de.jutzig</groupId>
@@ -94,29 +107,25 @@
                         <configuration>
                             <overwriteArtifact>true</overwriteArtifact>
                             <releaseName>${project.artifactId} - ${project.version}</releaseName>
-                            <description>Download the standalone executable -
-                                `runnable-${project.artifactId}-${project.version}.jar`
-                                and read the project's `README.md` for configuration instructions.
+                            <description>Use the maven dependency
+                                [![Maven
+                                Central](https://maven-badges.herokuapp.com/maven-central/${project.groupId}/${project.artifactId}/badge.svg)](https://maven-badges.herokuapp.com/maven-central/${project.groupId}/${project.artifactId})
                             </description>
                             <tag>${project.version}</tag>
-                            <fileSets>
-                                <fileSet>
-                                    <directory>${project.build.directory}</directory>
-                                    <includes>
-                                        <include>runnable-${project.artifactId}-${project.version}.jar</include>
-                                    </includes>
-                                </fileSet>
-                                <fileSet>
-                                    <directory>${project.basedir}</directory>
-                                    <includes>
-                                        <include>jenkins-script.sh</include>
-                                        <include>jira-config.json</include>
-                                    </includes>
-                                </fileSet>
-                            </fileSets>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -126,6 +135,11 @@
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.11</version>
+        </dependency>
+        <dependency>
+            <groupId>me.shib.java.lib</groupId>
+            <artifactId>jsonutils</artifactId>
+            <version>0.0.2</version>
         </dependency>
     </dependencies>
 

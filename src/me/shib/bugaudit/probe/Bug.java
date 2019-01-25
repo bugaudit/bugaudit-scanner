@@ -7,7 +7,7 @@ import java.util.Set;
 
 public final class Bug {
 
-    private static final String sourceCureLabel = "SourceCure";
+    private static final String bugAuditLabel = "BugAudit";
 
     private String title;
     private int priority;
@@ -17,7 +17,7 @@ public final class Bug {
     private Set<String> keys;
     private Set<String> tags;
 
-    public Bug(String title, int priority) {
+    protected Bug(String title, int priority) {
         this.title = title;
         this.priority = priority;
         this.descriptions = new HashSet<>();
@@ -25,7 +25,7 @@ public final class Bug {
         this.types = new HashSet<>();
         this.keys = new HashSet<>();
         this.tags = new HashSet<>();
-        addTag(sourceCureLabel);
+        addTag(bugAuditLabel);
     }
 
     public void addDescription(Content description) {
