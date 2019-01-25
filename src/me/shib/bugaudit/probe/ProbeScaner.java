@@ -26,14 +26,11 @@ public abstract class ProbeScaner {
         this.bugMap = new HashMap<>();
     }
 
-    public static synchronized List<ProbeScaner> getScanners(GitRepo repo) {
+    private static synchronized List<ProbeScaner> getScanners(GitRepo repo) {
         Lang lang = Lang.getCurrentLang();
         List<ProbeScaner> probeScaners = new ArrayList<>();
         if (lang != null) {
             Set<Class<? extends ProbeScaner>> scannerClasses = reflections.getSubTypesOf(ProbeScaner.class);
-            for (Class c : scannerClasses) {
-                System.out.println(c.getName());
-            }
             for (Class<? extends ProbeScaner> scannerClass : scannerClasses) {
                 try {
                     Class<?> clazz = Class.forName(scannerClass.getName());
@@ -49,6 +46,17 @@ public abstract class ProbeScaner {
             }
         }
         return probeScaners;
+    }
+
+    public static synchronized List<Bug> bugsFromScanners() {
+        List<Bug> bugs = new ArrayList<>();
+        List<ProbeScaner> scanners = ProbeScaner.getScanners(new GitRepo());
+        for (ProbeScaner scanner : scanners) {
+            System.out.println("Now running scanner: " + scanner.getTool());
+            scanner.scan();
+            bugs.addAll(scanner.getBugs());
+        }
+        return bugs;
     }
 
     private ProbeConfig getConfigFromFile() {
@@ -118,6 +126,6 @@ public abstract class ProbeScaner {
 
     public abstract String getTool();
 
-    public abstract void scan();
+    protected abstract void scan();
 
 }

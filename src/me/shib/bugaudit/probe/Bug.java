@@ -25,7 +25,7 @@ public final class Bug {
         this.types = new HashSet<>();
         this.keys = new HashSet<>();
         this.tags = new HashSet<>();
-        addTag(bugAuditLabel);
+        this.addKey(bugAuditLabel);
     }
 
     public void addDescription(Content description) {

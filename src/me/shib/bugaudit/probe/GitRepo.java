@@ -1,5 +1,8 @@
 package me.shib.bugaudit.probe;
 
+import me.shib.bugaudit.BugAuditException;
+import me.shib.bugaudit.probe.helper.CommandExecutor;
+
 public final class GitRepo {
 
     private static final String gitUrlEnv = "GIT_URL";
@@ -39,10 +42,47 @@ public final class GitRepo {
         this.branch = getGitBranchFromEnv(branch);
     }
 
+    private static String runGitCommang(String gitCommand) throws BugAuditException {
+        CommandExecutor commandExecutor = new CommandExecutor();
+        commandExecutor.runCommand(gitCommand);
+        String response = commandExecutor.getConsoleOutput();
+        if (response.contains("command not found") || response.contains("is currently not installed")) {
+            throw new BugAuditException("Git was not found in local environment before proceeding");
+        }
+        return response;
+    }
+
+    private static String getGitUrlFromLocalRepo() throws BugAuditException {
+        String response = runGitCommang("git remote show origin");
+        String[] lines = response.split("\n");
+        for (String line : lines) {
+            if (line.contains("Fetch URL")) {
+                return line.split("Fetch URL: ")[1];
+            }
+        }
+        return null;
+    }
+
+    private static String getGitBranchFromLocalRepo() throws BugAuditException {
+        String response = runGitCommang("git branch");
+        try {
+            return response.split("\\s+")[1];
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private static String getGitUrlFromEnv() {
         String gitUrl = System.getenv(gitUrlEnv);
         if (gitUrl == null) {
-            throw new UnsupportedOperationException("Expected " + gitUrlEnv + " environmental variable.");
+            try {
+                gitUrl = getGitUrlFromLocalRepo();
+            } catch (BugAuditException e) {
+                gitUrl = null;
+            }
+            if (gitUrl == null) {
+                throw new UnsupportedOperationException("Expected " + gitUrlEnv + " environmental variable.");
+            }
         }
         return gitUrl;
     }
@@ -51,7 +91,14 @@ public final class GitRepo {
         if (gitBranch == null) {
             gitBranch = System.getenv(gitBranchEnv);
             if (gitBranch == null) {
-                throw new UnsupportedOperationException("Expected " + gitBranchEnv + " environmental variable.");
+                try {
+                    gitBranch = getGitBranchFromLocalRepo();
+                } catch (BugAuditException e) {
+                    gitBranch = null;
+                }
+                if (gitBranch == null) {
+                    throw new UnsupportedOperationException("Expected " + gitBranchEnv + " environmental variable.");
+                }
             }
         }
         return gitBranch;
