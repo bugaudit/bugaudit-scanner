@@ -1,6 +1,6 @@
 package me.shib.bugaudit.probe;
 
-import me.shib.bugaudit.BugAuditException;
+import me.shib.bugaudit.commons.BugAuditException;
 import me.shib.bugaudit.probe.helper.CommandExecutor;
 
 public final class GitRepo {

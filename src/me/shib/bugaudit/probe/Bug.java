@@ -1,8 +1,8 @@
 package me.shib.bugaudit.probe;
 
-import java.util.ArrayList;
+import me.shib.bugaudit.commons.MarkdownContent;
+
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public final class Bug {
@@ -11,8 +11,7 @@ public final class Bug {
 
     private String title;
     private int priority;
-    private Set<Content> descriptions;
-    private Set<Content> references;
+    private MarkdownContent description;
     private Set<String> types;
     private Set<String> keys;
     private Set<String> tags;
@@ -20,20 +19,10 @@ public final class Bug {
     protected Bug(String title, int priority) {
         this.title = title;
         this.priority = priority;
-        this.descriptions = new HashSet<>();
-        this.references = new HashSet<>();
         this.types = new HashSet<>();
         this.keys = new HashSet<>();
         this.tags = new HashSet<>();
         this.addKey(bugAuditLabel);
-    }
-
-    public void addDescription(Content description) {
-        this.descriptions.add(description);
-    }
-
-    public void addReference(Content reference) {
-        this.references.add(reference);
     }
 
     public void addType(String type) {
@@ -62,12 +51,12 @@ public final class Bug {
         this.priority = priority;
     }
 
-    public List<Content> getDescriptions() {
-        return new ArrayList<>(descriptions);
+    public MarkdownContent getDescription() {
+        return description;
     }
 
-    public List<Content> getReferences() {
-        return new ArrayList<>(references);
+    public void setDescription(MarkdownContent description) {
+        this.description = description;
     }
 
     public Set<String> getTypes() {
