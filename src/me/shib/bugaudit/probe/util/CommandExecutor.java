@@ -1,4 +1,4 @@
-package me.shib.bugaudit.probe.helper;
+package me.shib.bugaudit.probe.util;
 
 import java.io.*;
 import java.nio.charset.Charset;

@@ -1,7 +1,6 @@
-package me.shib.bugaudit.probe;
+package me.shib.bugaudit.commons;
 
-import me.shib.bugaudit.commons.BugAuditException;
-import me.shib.bugaudit.probe.helper.CommandExecutor;
+import me.shib.bugaudit.probe.util.CommandExecutor;
 
 public final class GitRepo {
 
@@ -25,7 +24,7 @@ public final class GitRepo {
         this.branch = branch;
     }
 
-    static GitRepo getRepo() {
+    public static GitRepo getRepo() {
         if (gitRepo == null) {
             gitRepo = new GitRepo(getGitUrlFromEnv(), getGitBranchFromEnv());
         }

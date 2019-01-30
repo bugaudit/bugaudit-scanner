@@ -1,4 +1,4 @@
-package me.shib.bugaudit.probe;
+package me.shib.bugaudit.commons;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -7,12 +7,12 @@ import java.util.List;
 
 public enum Lang {
 
-    GoLan, Java, NodeJS, Python, Ruby;
+    GoLang, Java, NodeJS, Python, Ruby;
 
     private static final String langEnv = "BUGAUDIT_LANG";
     private static Lang lang;
 
-    static synchronized Lang getCurrentLang() {
+    public static synchronized Lang getCurrentLang() {
         if (lang == null) {
             try {
                 lang = Lang.valueOf(System.getenv(langEnv));
@@ -31,13 +31,15 @@ public enum Lang {
     private static Lang findLangFromCode() {
         File currentDir = Paths.get("").toAbsolutePath().toFile();
         String[] fileArr = currentDir.list();
-        List<String> files = Arrays.asList(fileArr);
-        if (files.contains("pom.xml")) {
-            return Java;
-        } else if (files.contains("Gemfile.lock") || files.contains("Gemfile")) {
-            return Ruby;
-        } else if (files.contains("package.json")) {
-            return NodeJS;
+        if (fileArr != null) {
+            List<String> files = Arrays.asList(fileArr);
+            if (files.contains("pom.xml")) {
+                return Java;
+            } else if (files.contains("Gemfile.lock") || files.contains("Gemfile")) {
+                return Ruby;
+            } else if (files.contains("package.json")) {
+                return NodeJS;
+            }
         }
         return null;
     }

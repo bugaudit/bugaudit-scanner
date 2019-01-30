@@ -1,6 +1,8 @@
 package me.shib.bugaudit.probe;
 
 import com.google.gson.reflect.TypeToken;
+import me.shib.bugaudit.commons.GitRepo;
+import me.shib.bugaudit.commons.Lang;
 import me.shib.java.lib.jsonconfig.JsonConfig;
 import org.reflections.Reflections;
 
