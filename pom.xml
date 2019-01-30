@@ -7,7 +7,7 @@
     <artifactId>bugaudit-probe</artifactId>
     <version>0.0.1</version>
     <name>BugAudit Probe</name>
-    <description>The bug auditing tools framework</description>
+    <description>The BugAudit probe framework</description>
     <url>https://github.com/bugaudit/bugaudit-probe</url>
 
     <issueManagement>
@@ -140,6 +140,11 @@
             <groupId>me.shib.java.lib</groupId>
             <artifactId>jsonutils</artifactId>
             <version>0.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>me.shib.bugaudit</groupId>
+            <artifactId>bugaudit-commons</artifactId>
+            <version>0.0.1</version>
         </dependency>
     </dependencies>
 
