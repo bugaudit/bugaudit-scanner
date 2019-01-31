@@ -19,7 +19,7 @@ import java.util.Set;
 public abstract class ProbeScaner {
 
     private static final String probeConfigFilePath = System.getenv("BUGAUDIT_PROBE_CONFIG");
-    private static final Reflections reflections = new Reflections("me.shib.bugaudit.probe");
+    private static final Reflections reflections = new Reflections(ProbeScaner.class.getPackage().getName());
     protected BugAuditResult bugAuditResult;
     private ProbeConfig probeConfig;
     private GitRepo repo;
