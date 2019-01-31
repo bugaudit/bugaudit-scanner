@@ -1,6 +1,8 @@
 package me.shib.bugaudit.probe;
 
 import com.google.gson.reflect.TypeToken;
+import me.shib.bugaudit.commons.Bug;
+import me.shib.bugaudit.commons.BugAuditResult;
 import me.shib.bugaudit.commons.GitRepo;
 import me.shib.bugaudit.commons.Lang;
 import me.shib.java.lib.jsonconfig.JsonConfig;
@@ -9,15 +11,17 @@ import org.reflections.Reflections;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class ProbeScaner {
 
     private static final String probeConfigFilePath = System.getenv("BUGAUDIT_PROBE_CONFIG");
     private static final Reflections reflections = new Reflections("me.shib.bugaudit.probe");
-
+    protected BugAuditResult bugAuditResult;
     private ProbeConfig probeConfig;
-    private Map<String, Bug> bugMap;
     private GitRepo repo;
 
     public ProbeScaner() {
@@ -25,21 +29,19 @@ public abstract class ProbeScaner {
         if (this.probeConfig == null) {
             this.probeConfig = getDefaultProbeConfig();
         }
-        this.bugMap = new HashMap<>();
+        this.bugAuditResult = new BugAuditResult(getTool(), getLang(), GitRepo.getRepo(), this.probeConfig.getPriorityMap());
     }
 
     private static synchronized List<ProbeScaner> getScanners(GitRepo repo) {
-        Lang lang = Lang.getCurrentLang();
         List<ProbeScaner> probeScaners = new ArrayList<>();
-        if (lang != null) {
+        if (repo.getLang() != null) {
             Set<Class<? extends ProbeScaner>> scannerClasses = reflections.getSubTypesOf(ProbeScaner.class);
             for (Class<? extends ProbeScaner> scannerClass : scannerClasses) {
                 try {
                     Class<?> clazz = Class.forName(scannerClass.getName());
                     Constructor<?> ctor = clazz.getConstructor();
                     ProbeScaner probeScaner = (ProbeScaner) ctor.newInstance();
-                    if (probeScaner.getLang() == lang) {
-                        probeScaner.setRepo(repo);
+                    if (probeScaner.getLang() == repo.getLang()) {
                         probeScaners.add(probeScaner);
                     }
                 } catch (Exception e) {
@@ -50,15 +52,15 @@ public abstract class ProbeScaner {
         return probeScaners;
     }
 
-    public static synchronized List<Bug> bugsFromScanners() {
-        List<Bug> bugs = new ArrayList<>();
+    public static synchronized List<BugAuditResult> getAuditResultsFromScanners() {
+        List<BugAuditResult> auditResults = new ArrayList<>();
         List<ProbeScaner> scanners = ProbeScaner.getScanners(GitRepo.getRepo());
         for (ProbeScaner scanner : scanners) {
             System.out.println("Now running scanner: " + scanner.getTool());
             scanner.scan();
-            bugs.addAll(scanner.getBugs());
+            auditResults.add(scanner.bugAuditResult);
         }
-        return bugs;
+        return auditResults;
     }
 
     private ProbeConfig getConfigFromFile() {
@@ -84,20 +86,6 @@ public abstract class ProbeScaner {
         return probeConfig;
     }
 
-    protected void addBug(Bug bug) {
-        bug.addTag(repo.toString());
-        bug.addTag(getTool());
-        bug.addTag(getLang().toString());
-        StringBuilder key = new StringBuilder();
-        List<String> keyList = new ArrayList<>(bug.getKeys());
-        Collections.sort(keyList);
-        for (String k : keyList) {
-            key.append(k).append(";");
-        }
-        applyPriorityFilters(bug);
-        bugMap.put(key.toString(), bug);
-    }
-
     private void applyPriorityFilters(Bug bug) {
         Map<String, Integer> priorityMap = probeConfig.getPriorityMap();
         for (String type : priorityMap.keySet()) {
@@ -108,25 +96,9 @@ public abstract class ProbeScaner {
         }
     }
 
-    protected Bug newBug(String title, int priority) {
-        return new Bug(title, priority);
-    }
+    protected abstract Lang getLang();
 
-    public GitRepo getRepo() {
-        return repo;
-    }
-
-    void setRepo(GitRepo repo) {
-        this.repo = repo;
-    }
-
-    public List<Bug> getBugs() {
-        return new ArrayList<>(bugMap.values());
-    }
-
-    public abstract Lang getLang();
-
-    public abstract String getTool();
+    protected abstract String getTool();
 
     protected abstract void scan();
 
