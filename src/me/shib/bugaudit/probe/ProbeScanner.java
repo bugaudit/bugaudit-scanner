@@ -16,15 +16,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class ProbeScaner {
+public abstract class ProbeScanner {
 
     private static final String probeConfigFilePath = System.getenv("BUGAUDIT_PROBE_CONFIG");
-    private static final Reflections reflections = new Reflections(ProbeScaner.class.getPackage().getName());
+    private static final Reflections reflections = new Reflections(ProbeScanner.class.getPackage().getName());
     protected BugAuditResult bugAuditResult;
     private ProbeConfig probeConfig;
     private GitRepo repo;
 
-    public ProbeScaner() {
+    public ProbeScanner() {
         this.probeConfig = getConfigFromFile();
         if (this.probeConfig == null) {
             this.probeConfig = getDefaultProbeConfig();
@@ -32,30 +32,30 @@ public abstract class ProbeScaner {
         this.bugAuditResult = new BugAuditResult(getTool(), getLang(), GitRepo.getRepo(), this.probeConfig.getPriorityMap());
     }
 
-    private static synchronized List<ProbeScaner> getScanners(GitRepo repo) {
-        List<ProbeScaner> probeScaners = new ArrayList<>();
+    private static synchronized List<ProbeScanner> getScanners(GitRepo repo) {
+        List<ProbeScanner> probeScanners = new ArrayList<>();
         if (repo.getLang() != null) {
-            Set<Class<? extends ProbeScaner>> scannerClasses = reflections.getSubTypesOf(ProbeScaner.class);
-            for (Class<? extends ProbeScaner> scannerClass : scannerClasses) {
+            Set<Class<? extends ProbeScanner>> scannerClasses = reflections.getSubTypesOf(ProbeScanner.class);
+            for (Class<? extends ProbeScanner> scannerClass : scannerClasses) {
                 try {
                     Class<?> clazz = Class.forName(scannerClass.getName());
                     Constructor<?> ctor = clazz.getConstructor();
-                    ProbeScaner probeScaner = (ProbeScaner) ctor.newInstance();
-                    if (probeScaner.getLang() == repo.getLang()) {
-                        probeScaners.add(probeScaner);
+                    ProbeScanner probeScanner = (ProbeScanner) ctor.newInstance();
+                    if (probeScanner.getLang() == repo.getLang()) {
+                        probeScanners.add(probeScanner);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
-        return probeScaners;
+        return probeScanners;
     }
 
     public static synchronized List<BugAuditResult> getAuditResultsFromScanners() {
         List<BugAuditResult> auditResults = new ArrayList<>();
-        List<ProbeScaner> scanners = ProbeScaner.getScanners(GitRepo.getRepo());
-        for (ProbeScaner scanner : scanners) {
+        List<ProbeScanner> scanners = ProbeScanner.getScanners(GitRepo.getRepo());
+        for (ProbeScanner scanner : scanners) {
             System.out.println("Now running scanner: " + scanner.getTool());
             scanner.scan();
             auditResults.add(scanner.bugAuditResult);
