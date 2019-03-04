@@ -1,7 +1,10 @@
 package me.shib.bugaudit.probe;
 
 import com.google.gson.reflect.TypeToken;
-import me.shib.bugaudit.commons.*;
+import me.shib.bugaudit.commons.BugAuditException;
+import me.shib.bugaudit.commons.BugAuditResult;
+import me.shib.bugaudit.commons.GitRepo;
+import me.shib.bugaudit.commons.Lang;
 import me.shib.java.lib.jsonconfig.JsonConfig;
 import org.reflections.Reflections;
 
@@ -89,16 +92,6 @@ public abstract class ProbeScanner {
 
     protected ProbeConfig getProbeConfig() {
         return probeConfig;
-    }
-
-    private void applyPriorityFilters(Bug bug) {
-        Map<String, Integer> priorityMap = probeConfig.getPriorityMap();
-        for (String type : priorityMap.keySet()) {
-            if ((type == null || bug.getTypes().contains(type)) &&
-                    (bug.getPriority() > priorityMap.get(type))) {
-                bug.setPriority(priorityMap.get(type));
-            }
-        }
     }
 
     protected abstract Lang getLang();
