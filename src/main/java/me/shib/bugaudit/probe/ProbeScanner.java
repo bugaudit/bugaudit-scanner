@@ -1,10 +1,7 @@
 package me.shib.bugaudit.probe;
 
 import com.google.gson.reflect.TypeToken;
-import me.shib.bugaudit.commons.Bug;
-import me.shib.bugaudit.commons.BugAuditResult;
-import me.shib.bugaudit.commons.GitRepo;
-import me.shib.bugaudit.commons.Lang;
+import me.shib.bugaudit.commons.*;
 import me.shib.java.lib.jsonconfig.JsonConfig;
 import org.reflections.Reflections;
 
@@ -18,6 +15,7 @@ import java.util.Set;
 
 public abstract class ProbeScanner {
 
+    private static final String cveBaseURL = "https://nvd.nist.gov/vuln/detail/";
     private static final String probeConfigFilePath = System.getenv("BUGAUDIT_PROBE_CONFIG");
     private static final Reflections reflections = new Reflections(ProbeScanner.class.getPackage().getName());
     protected BugAuditResult bugAuditResult;
@@ -61,6 +59,13 @@ public abstract class ProbeScanner {
             auditResults.add(scanner.bugAuditResult);
         }
         return auditResults;
+    }
+
+    protected String getUrlForCVE(String cve) throws BugAuditException {
+        if (cve != null && cve.toUpperCase().startsWith("CVE")) {
+            return cveBaseURL + cve;
+        }
+        throw new BugAuditException("CVE provided is not valid");
     }
 
     private ProbeConfig getConfigFromFile() {
