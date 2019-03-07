@@ -53,7 +53,7 @@ public abstract class ProbeScanner {
         return probeScanners;
     }
 
-    public static synchronized List<BugAuditResult> getAuditResultsFromScanners() {
+    public static synchronized List<BugAuditResult> getAuditResultsFromScanners() throws Exception {
         List<BugAuditResult> auditResults = new ArrayList<>();
         List<ProbeScanner> scanners = ProbeScanner.getScanners(GitRepo.getRepo());
         for (ProbeScanner scanner : scanners) {
@@ -108,6 +108,6 @@ public abstract class ProbeScanner {
 
     protected abstract String getTool();
 
-    protected abstract void scan();
+    protected abstract void scan() throws Exception;
 
 }
