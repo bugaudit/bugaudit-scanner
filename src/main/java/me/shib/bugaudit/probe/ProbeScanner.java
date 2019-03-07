@@ -18,11 +18,13 @@ import java.util.Set;
 
 public abstract class ProbeScanner {
 
+    private static final String parserOnlyEnv = "BUGAUDIT_PROBE_PARSERONLY";
     private static final String probeDirPathEnv = "BUGAUDIT_PROBE_DIR";
     private static final String cveBaseURL = "https://nvd.nist.gov/vuln/detail/";
     private static final String probeConfigFilePath = System.getenv("BUGAUDIT_PROBE_CONFIG");
     private static final Reflections reflections = new Reflections(ProbeScanner.class.getPackage().getName());
     protected BugAuditResult bugAuditResult;
+    protected transient boolean parserOnly;
     private ProbeConfig probeConfig;
 
     public ProbeScanner() {
@@ -31,6 +33,7 @@ public abstract class ProbeScanner {
             this.probeConfig = getDefaultProbeConfig();
         }
         this.bugAuditResult = new BugAuditResult(getTool(), getLang(), GitRepo.getRepo(), this.probeConfig.getPriorityMap(), makeProbeDir());
+        this.parserOnly = System.getenv(parserOnlyEnv) != null && System.getenv(parserOnlyEnv).equalsIgnoreCase("TRUE");
     }
 
     private static synchronized List<ProbeScanner> getScanners(GitRepo repo) {
