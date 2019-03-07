@@ -23,14 +23,13 @@ public abstract class ProbeScanner {
     private static final Reflections reflections = new Reflections(ProbeScanner.class.getPackage().getName());
     protected BugAuditResult bugAuditResult;
     private ProbeConfig probeConfig;
-    private GitRepo repo;
 
     public ProbeScanner() {
         this.probeConfig = getConfigFromFile();
         if (this.probeConfig == null) {
             this.probeConfig = getDefaultProbeConfig();
         }
-        this.bugAuditResult = new BugAuditResult(getTool(), getLang(), GitRepo.getRepo(), this.probeConfig.getPriorityMap());
+        this.bugAuditResult = new BugAuditResult(getTool(), getLang(), GitRepo.getRepo(), this.probeConfig.getPriorityMap(), this.probeConfig.getProbeDirPath());
     }
 
     private static synchronized List<ProbeScanner> getScanners(GitRepo repo) {
