@@ -18,6 +18,7 @@ import java.util.Set;
 
 public abstract class ProbeScanner {
 
+    private static final String probeDirPathEnv = "BUGAUDIT_PROBE_DIR";
     private static final String cveBaseURL = "https://nvd.nist.gov/vuln/detail/";
     private static final String probeConfigFilePath = System.getenv("BUGAUDIT_PROBE_CONFIG");
     private static final Reflections reflections = new Reflections(ProbeScanner.class.getPackage().getName());
@@ -29,7 +30,7 @@ public abstract class ProbeScanner {
         if (this.probeConfig == null) {
             this.probeConfig = getDefaultProbeConfig();
         }
-        this.bugAuditResult = new BugAuditResult(getTool(), getLang(), GitRepo.getRepo(), this.probeConfig.getPriorityMap(), this.probeConfig.getProbeDirPath());
+        this.bugAuditResult = new BugAuditResult(getTool(), getLang(), GitRepo.getRepo(), this.probeConfig.getPriorityMap(), makeProbeDir());
     }
 
     private static synchronized List<ProbeScanner> getScanners(GitRepo repo) {
@@ -61,6 +62,16 @@ public abstract class ProbeScanner {
             auditResults.add(scanner.bugAuditResult);
         }
         return auditResults;
+    }
+
+    private String makeProbeDir() {
+        String path = System.getenv(probeDirPathEnv);
+        String currentPath = System.getProperty("user.dir");
+        if (path == null || path.isEmpty() || !currentPath.endsWith(path)) {
+            return null;
+        }
+        path = "scanpath-" + path;
+        return path;
     }
 
     protected String getUrlForCVE(String cve) throws BugAuditException {
