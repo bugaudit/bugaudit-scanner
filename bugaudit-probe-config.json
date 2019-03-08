@@ -1,0 +1,11 @@
+{
+  "Brakeman": {
+    "RCE": 1,
+    "SQL Injection": 1,
+    "XSS": 2
+  },
+  "RetireJS": {
+    "XSS": 2,
+    "Self XSS": 3
+  }
+}

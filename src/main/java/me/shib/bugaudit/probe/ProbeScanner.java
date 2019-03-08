@@ -25,14 +25,13 @@ public abstract class ProbeScanner {
     private static final Reflections reflections = new Reflections(ProbeScanner.class.getPackage().getName());
     protected BugAuditResult bugAuditResult;
     protected transient boolean parserOnly;
-    private ProbeConfig probeConfig;
 
     public ProbeScanner() {
-        this.probeConfig = getConfigFromFile();
-        if (this.probeConfig == null) {
-            this.probeConfig = getDefaultProbeConfig();
+        ProbeConfig probeConfig = getConfigFromFile();
+        if (probeConfig == null) {
+            probeConfig = getDefaultProbeConfig();
         }
-        this.bugAuditResult = new BugAuditResult(getTool(), getLang(), GitRepo.getRepo(), this.probeConfig.getPriorityMap(), makeProbeDir());
+        this.bugAuditResult = new BugAuditResult(getTool(), getLang(), GitRepo.getRepo(), probeConfig.getClassificationPriorityMap(), makeProbeDir());
         this.parserOnly = System.getenv(parserOnlyEnv) != null && System.getenv(parserOnlyEnv).equalsIgnoreCase("TRUE");
     }
 
@@ -102,10 +101,6 @@ public abstract class ProbeScanner {
     }
 
     protected abstract ProbeConfig getDefaultProbeConfig();
-
-    protected ProbeConfig getProbeConfig() {
-        return probeConfig;
-    }
 
     protected abstract Lang getLang();
 

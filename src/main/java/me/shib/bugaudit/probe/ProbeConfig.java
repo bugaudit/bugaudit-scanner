@@ -5,26 +5,26 @@ import java.util.Map;
 
 public abstract class ProbeConfig {
 
-    private Map<String, Integer> priorityMap;
+    private Map<String, Integer> classificationPriorityMap;
 
     public ProbeConfig() {
-        this.priorityMap = new HashMap<>();
+        this.classificationPriorityMap = new HashMap<>();
     }
 
-    protected abstract Map<String, Integer> getDefaultPriorityMap();
+    protected abstract Map<String, Integer> getDefaultClassificationPriorityMap();
 
-    public Map<String, Integer> getPriorityMap() {
-        if (priorityMap == null) {
-            priorityMap = getDefaultPriorityMap();
-            if (priorityMap == null) {
-                priorityMap = new HashMap<>();
+    public Map<String, Integer> getClassificationPriorityMap() {
+        if (classificationPriorityMap == null) {
+            classificationPriorityMap = getDefaultClassificationPriorityMap();
+            if (classificationPriorityMap == null) {
+                classificationPriorityMap = new HashMap<>();
             }
         }
-        return priorityMap;
+        return classificationPriorityMap;
     }
 
-    public void addPriorityForType(String type, int priority) {
-        getPriorityMap().put(type, priority);
+    public void addPriorityForClassification(String type, int priority) {
+        getClassificationPriorityMap().put(type, priority);
     }
 
 }
