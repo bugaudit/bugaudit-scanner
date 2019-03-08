@@ -19,6 +19,7 @@ import java.util.Set;
 public abstract class ProbeScanner {
 
     private static final String parserOnlyEnv = "BUGAUDIT_PROBE_PARSERONLY";
+    private static final String probeScannerToolEnv = "BUGAUDIT_PROBE_TOOL";
     private static final String probeDirPathEnv = "BUGAUDIT_PROBE_DIR";
     private static final String cveBaseURL = "https://nvd.nist.gov/vuln/detail/";
     private static final String probeConfigFilePath = System.getenv("BUGAUDIT_PROBE_CONFIG");
@@ -36,6 +37,7 @@ public abstract class ProbeScanner {
     }
 
     private static synchronized List<ProbeScanner> getScanners(GitRepo repo) {
+        String probeScannerToolName = System.getenv(probeScannerToolEnv);
         List<ProbeScanner> probeScanners = new ArrayList<>();
         if (repo.getLang() != null) {
             Set<Class<? extends ProbeScanner>> scannerClasses = reflections.getSubTypesOf(ProbeScanner.class);
@@ -45,7 +47,10 @@ public abstract class ProbeScanner {
                     Constructor<?> ctor = clazz.getConstructor();
                     ProbeScanner probeScanner = (ProbeScanner) ctor.newInstance();
                     if (probeScanner.getLang() == repo.getLang()) {
-                        probeScanners.add(probeScanner);
+                        if (probeScannerToolName == null || probeScannerToolName.isEmpty() ||
+                                probeScannerToolName.equalsIgnoreCase(probeScanner.getTool())) {
+                            probeScanners.add(probeScanner);
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
