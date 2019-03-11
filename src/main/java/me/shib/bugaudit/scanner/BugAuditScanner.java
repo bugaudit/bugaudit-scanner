@@ -25,7 +25,7 @@ public abstract class BugAuditScanner {
     private BugAuditScanResult bugAuditScanResult;
 
     public BugAuditScanner() {
-        ScannerConfig scannerConfig = getConfigFromFile();
+        BugAuditScannerConfig scannerConfig = getConfigFromFile();
         if (scannerConfig == null) {
             scannerConfig = getDefaultScannerConfig();
         }
@@ -78,15 +78,15 @@ public abstract class BugAuditScanner {
         throw new BugAuditException("CVE provided is not valid");
     }
 
-    private ScannerConfig getConfigFromFile() {
+    private BugAuditScannerConfig getConfigFromFile() {
         try {
             if (scannerConfigFilePath != null && !scannerConfigFilePath.isEmpty()) {
                 File scannerConfigFile = new File(scannerConfigFilePath);
                 if (scannerConfigFile.exists()) {
                     JsonConfig jsonConfig = JsonConfig.getJsonConfig(scannerConfigFile);
-                    Type type = new TypeToken<Map<String, ScannerConfig>>() {
+                    Type type = new TypeToken<Map<String, BugAuditScannerConfig>>() {
                     }.getType();
-                    Map<String, ScannerConfig> configMap = jsonConfig.get(type);
+                    Map<String, BugAuditScannerConfig> configMap = jsonConfig.get(type);
                     return configMap.get(getTool());
                 }
             }
@@ -99,7 +99,7 @@ public abstract class BugAuditScanner {
         return bugAuditScanResult;
     }
 
-    protected abstract ScannerConfig getDefaultScannerConfig();
+    protected abstract BugAuditScannerConfig getDefaultScannerConfig();
 
     protected abstract Lang getLang();
 

@@ -3,11 +3,11 @@ package me.shib.bugaudit.scanner;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class ScannerConfig {
+public abstract class BugAuditScannerConfig {
 
     private Map<String, Integer> classificationPriorityMap;
 
-    public ScannerConfig() {
+    public BugAuditScannerConfig() {
         this.classificationPriorityMap = new HashMap<>();
     }
 
