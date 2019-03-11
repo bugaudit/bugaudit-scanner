@@ -4,21 +4,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.shib.bugaudit</groupId>
-    <artifactId>bugaudit-probe</artifactId>
+    <artifactId>bugaudit-scanner</artifactId>
     <version>0.0.1</version>
-    <name>BugAudit Probe</name>
-    <description>The BugAudit probe framework</description>
-    <url>https://github.com/bugaudit/bugaudit-probe</url>
+    <name>BugAudit Scanner</name>
+    <description>The BugAudit scanner framework</description>
+    <url>https://github.com/bugaudit/bugaudit-scanner</url>
 
     <issueManagement>
-        <url>https://github.com/bugaudit/bugaudit-probe/issues</url>
+        <url>https://github.com/bugaudit/bugaudit-scanner/issues</url>
         <system>GitHub Issues</system>
     </issueManagement>
 
     <scm>
-        <url>https://github.com/bugaudit/bugaudit-probe</url>
-        <connection>scm:git:https://github.com/bugaudit/bugaudit-probe.git</connection>
-        <developerConnection>scm:git:git@github.com:bugaudit/bugaudit-probe.git</developerConnection>
+        <url>https://github.com/bugaudit/bugaudit-scanner</url>
+        <connection>scm:git:https://github.com/bugaudit/bugaudit-scanner.git</connection>
+        <developerConnection>scm:git:git@github.com:bugaudit/bugaudit-scanner.git</developerConnection>
     </scm>
 
     <developers>

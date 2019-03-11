@@ -1,13 +1,13 @@
-package me.shib.bugaudit.probe;
+package me.shib.bugaudit.scanner;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class ProbeConfig {
+public abstract class ScannerConfig {
 
     private Map<String, Integer> classificationPriorityMap;
 
-    public ProbeConfig() {
+    public ScannerConfig() {
         this.classificationPriorityMap = new HashMap<>();
     }
 
