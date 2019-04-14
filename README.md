@@ -1,5 +1,5 @@
 # BugAudit Scanner
-[![Build Status](https://travis-ci.org/bugaudit/bugaudit-scanner.svg)](https://travis-ci.org/bugaudit/bugaudit-scanner)
-[![Percentage of issues still open](http://isitmaintained.com/badge/open/bugaudit/bugaudit-scanner.svg)](http://isitmaintained.com/project/bugaudit/bugaudit-scanner "Percentage of issues still open")
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.shib.bugaudit/bugaudit-scanner/badge.svg)](https://maven-badges.herokuapp.com/maven-central/me.shib.bugaudit/bugaudit-scanner)
+[![Build Status](https://gitlab.com/bugaudit/bugaudit-scanner/badges/master/pipeline.svg)](https://gitlab.com/bugaudit/bugaudit-scanner/pipelines)
 
 The BugAudit scanner framework
