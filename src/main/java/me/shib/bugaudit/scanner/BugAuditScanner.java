@@ -1,11 +1,15 @@
 package me.shib.bugaudit.scanner;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import me.shib.bugaudit.commons.BugAuditException;
-import me.shib.java.lib.jsonconfig.JsonConfig;
 import org.reflections.Reflections;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -22,6 +26,7 @@ public abstract class BugAuditScanner {
     private static final String cveBaseURL = "https://nvd.nist.gov/vuln/detail/";
     private static final Reflections reflections = new Reflections(BugAuditScanner.class.getPackage().getName());
     private transient boolean parserOnly;
+    private transient Gson gson;
     private BugAuditScanResult bugAuditScanResult;
 
     public BugAuditScanner() {
@@ -31,6 +36,7 @@ public abstract class BugAuditScanner {
         }
         this.bugAuditScanResult = new BugAuditScanResult(getTool(), getLang(), GitRepo.getRepo(), scannerConfig.getClassificationPriorityMap(), makeScannerDir());
         this.parserOnly = System.getenv(scannerParserOnlyEnv) != null && System.getenv(scannerParserOnlyEnv).equalsIgnoreCase("TRUE");
+        this.gson = new GsonBuilder().create();
     }
 
     public static synchronized List<BugAuditScanner> getScanners(GitRepo repo) {
@@ -78,15 +84,29 @@ public abstract class BugAuditScanner {
         throw new BugAuditException("CVE provided is not valid");
     }
 
+    private String readFromFile(File file) throws IOException {
+        if (!file.exists() || file.isDirectory()) {
+            return "";
+        }
+        StringBuilder contentBuilder = new StringBuilder();
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        String line;
+        while ((line = br.readLine()) != null) {
+            contentBuilder.append(line).append("\n");
+        }
+        br.close();
+        return contentBuilder.toString();
+    }
+
     private BugAuditScannerConfig getConfigFromFile() {
         try {
             if (scannerConfigFilePath != null && !scannerConfigFilePath.isEmpty()) {
                 File scannerConfigFile = new File(scannerConfigFilePath);
                 if (scannerConfigFile.exists()) {
-                    JsonConfig jsonConfig = JsonConfig.getJsonConfig(scannerConfigFile);
+                    String json = readFromFile(scannerConfigFile);
                     Type type = new TypeToken<Map<String, BugAuditScannerConfig>>() {
                     }.getType();
-                    Map<String, BugAuditScannerConfig> configMap = jsonConfig.get(type);
+                    Map<String, BugAuditScannerConfig> configMap = gson.fromJson(json, type);
                     return configMap.get(getTool());
                 }
             }
