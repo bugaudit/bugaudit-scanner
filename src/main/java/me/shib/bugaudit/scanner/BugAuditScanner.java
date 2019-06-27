@@ -63,6 +63,11 @@ public abstract class BugAuditScanner {
         return bugAuditScanners;
     }
 
+    public static String runCommand(String command) throws IOException, InterruptedException {
+        CommandRunner commandRunner = new CommandRunner(command);
+        return commandRunner.execute();
+    }
+
     protected boolean isParserOnly() {
         return parserOnly;
     }

@@ -33,10 +33,10 @@ public final class GitRepo {
         return gitRepo;
     }
 
-    private static String runGitCommang(String gitCommand) throws BugAuditException {
-        CommandExecutor commandExecutor = new CommandExecutor();
-        commandExecutor.runCommand(gitCommand);
-        String response = commandExecutor.getConsoleOutput();
+    private static String runGitCommand(String gitCommand) throws BugAuditException {
+        CommandRunner runner = new CommandRunner(gitCommand);
+        runner.suppressConsoleLog();
+        String response = runner.getStreamContent();
         if (response.contains("command not found") || response.contains("is currently not installed")) {
             throw new BugAuditException("Git was not found in local environment before proceeding");
         }
@@ -44,7 +44,7 @@ public final class GitRepo {
     }
 
     private static String getGitUrlFromLocalRepo() throws BugAuditException {
-        String response = runGitCommang("git remote show origin");
+        String response = runGitCommand("git remote show origin");
         String[] lines = response.split("\n");
         for (String line : lines) {
             if (line.contains("Fetch URL")) {
@@ -55,7 +55,7 @@ public final class GitRepo {
     }
 
     private static String getGitBranchFromLocalRepo() throws BugAuditException {
-        String response = runGitCommang("git branch");
+        String response = runGitCommand("git branch");
         try {
             return response.split("\\s+")[1];
         } catch (Exception e) {
