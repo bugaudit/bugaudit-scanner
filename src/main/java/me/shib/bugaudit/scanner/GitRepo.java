@@ -2,6 +2,8 @@ package me.shib.bugaudit.scanner;
 
 import me.shib.bugaudit.commons.BugAuditException;
 
+import java.io.IOException;
+
 public final class GitRepo {
 
     private static final String gitUrlEnv = "GIT_URL";
@@ -28,7 +30,7 @@ public final class GitRepo {
 
     public static GitRepo getRepo() {
         if (gitRepo == null) {
-            gitRepo = new GitRepo(getGitUrlFromEnv(), getGitBranchFromEnv());
+            gitRepo = new GitRepo(getGitUrlFromRepoAndEnv(), getGitBranchFromRepoAndEnv());
         }
         return gitRepo;
     }
@@ -36,6 +38,12 @@ public final class GitRepo {
     private static String runGitCommand(String gitCommand) throws BugAuditException {
         CommandRunner runner = new CommandRunner(gitCommand);
         runner.suppressConsoleLog();
+        try {
+            runner.execute();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
         String response = runner.getStreamContent();
         if (response.contains("command not found") || response.contains("is currently not installed")) {
             throw new BugAuditException("Git was not found in local environment before proceeding");
@@ -63,7 +71,7 @@ public final class GitRepo {
         }
     }
 
-    private static String getGitUrlFromEnv() {
+    private static String getGitUrlFromRepoAndEnv() {
         String gitUrl = System.getenv(gitUrlEnv);
         if (gitUrl == null) {
             try {
@@ -78,7 +86,7 @@ public final class GitRepo {
         return gitUrl;
     }
 
-    private static String getGitBranchFromEnv() {
+    private static String getGitBranchFromRepoAndEnv() {
         String gitBranch = System.getenv(gitBranchEnv);
         if (gitBranch == null) {
             try {
