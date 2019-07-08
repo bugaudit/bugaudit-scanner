@@ -52,12 +52,9 @@ public final class GitRepo {
     }
 
     private static String getGitUrlFromLocalRepo() throws BugAuditException {
-        String response = runGitCommand("git remote show origin");
-        String[] lines = response.split("\n");
-        for (String line : lines) {
-            if (line.contains("Fetch URL")) {
-                return line.split("Fetch URL: ")[1];
-            }
+        String response = runGitCommand("git config --get remote.origin.url");
+        if (response != null) {
+            return response.trim();
         }
         return null;
     }
