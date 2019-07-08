@@ -27,7 +27,7 @@ final class CommandRunner {
     private synchronized void addLine(String line, StreamType type) {
         streamContent.append(line).append("\n");
         if (showConsoleLog) {
-            System.out.println("[" + type + "] " + line);
+            System.out.println("[" + type + " STREAM] " + line);
         }
     }
 
