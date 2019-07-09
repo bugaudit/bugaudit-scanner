@@ -24,10 +24,10 @@ final class CommandRunner {
         this.showConsoleLog = true;
     }
 
-    private synchronized void addLine(String line, StreamType type) {
+    private synchronized void addLine(String line) {
         streamContent.append(line).append("\n");
         if (showConsoleLog) {
-            System.out.println("[" + type + " STREAM] " + line);
+            System.out.println("[EXECUTION] " + line);
         }
     }
 
@@ -68,7 +68,7 @@ final class CommandRunner {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
             while ((line = reader.readLine()) != null) {
-                commandRunner.addLine(line, type);
+                commandRunner.addLine(line);
             }
             reader.close();
         }
