@@ -49,20 +49,23 @@ public final class GitRepo {
         return gitRepo;
     }
 
-    public static boolean cloneRepo(String gitUrl, String gitApiToken, File dirToCloneInto) throws BugAuditException {
+    public static boolean cloneRepo(String gitUrl, String username, String password, File dirToCloneInto) throws BugAuditException {
         try {
             String cleanedGitUrl = cleanRepoUrl(gitUrl);
             Git git;
-            if (gitApiToken == null || gitApiToken.isEmpty()) {
+            if (password == null || password.isEmpty()) {
                 git = Git.cloneRepository()
                         .setURI("https://" + cleanedGitUrl)
                         .setDirectory(dirToCloneInto)
                         .call();
             } else {
+                if (username == null || username.isEmpty()) {
+                    username = "git";
+                }
                 git = Git.cloneRepository()
                         .setURI("https://" + cleanedGitUrl)
                         .setDirectory(dirToCloneInto)
-                        .setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", gitApiToken))
+                        .setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password))
                         .call();
             }
             git.close();
@@ -71,6 +74,14 @@ public final class GitRepo {
         } catch (GitAPIException e) {
             throw new BugAuditException(e.getMessage());
         }
+    }
+
+    public static boolean cloneRepo(String gitUrl, String authToken, File dirToCloneInto) throws BugAuditException {
+        return cloneRepo(gitUrl, null, authToken, dirToCloneInto);
+    }
+
+    public static boolean cloneRepo(String gitUrl, String username, String password) throws BugAuditException {
+        return cloneRepo(gitUrl, username, password, new File(System.getProperty("user.dir")));
     }
 
     public static boolean cloneRepo(String gitUrl, String gitApiToken) throws BugAuditException {
