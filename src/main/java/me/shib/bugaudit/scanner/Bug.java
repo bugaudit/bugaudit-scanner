@@ -1,6 +1,7 @@
 package me.shib.bugaudit.scanner;
 
 import me.shib.bugaudit.commons.BugAuditContent;
+import me.shib.bugaudit.commons.BugAuditException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +17,7 @@ public final class Bug {
     private Set<String> keys;
     private Set<String> tags;
 
-    Bug(String title, int priority) {
+    Bug(String title, int priority) throws BugAuditException {
         this.title = title;
         this.priority = priority;
         this.types = new HashSet<>();
@@ -30,7 +31,10 @@ public final class Bug {
         this.addTag(type);
     }
 
-    public void addKey(String key) {
+    public void addKey(String key) throws BugAuditException {
+        if (key == null || key.isEmpty()) {
+            throw new BugAuditException("Null or Empty key cannot be processed");
+        }
         this.keys.add(key);
         this.addTag(key);
     }

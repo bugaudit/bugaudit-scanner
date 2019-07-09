@@ -1,5 +1,7 @@
 package me.shib.bugaudit.scanner;
 
+import me.shib.bugaudit.commons.BugAuditException;
+
 import java.util.*;
 
 public class BugAuditScanResult {
@@ -40,11 +42,11 @@ public class BugAuditScanResult {
         }
     }
 
-    public Bug newBug(String title, int priority) {
+    public Bug newBug(String title, int priority) throws BugAuditException {
         return new Bug(title, priority);
     }
 
-    public void addBug(Bug bug) {
+    public void addBug(Bug bug) throws BugAuditException {
         bug.addKey(repo.toString());
         bug.addKey(tool);
         bug.addKey(lang.toString());
