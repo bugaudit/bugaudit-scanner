@@ -1,15 +1,19 @@
 package me.shib.bugaudit.scanner;
 
 import me.shib.bugaudit.commons.BugAuditException;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
+import java.io.File;
 import java.io.IOException;
 
 public final class GitRepo {
 
-    private static final String gitUrlEnv = "GIT_URL";
-    private static final String gitBranchEnv = "GIT_BRANCH";
-
     private static GitRepo gitRepo;
+    private static Repository repository;
 
     private String host;
     private String owner;
@@ -28,88 +32,61 @@ public final class GitRepo {
         this.lang = Lang.getCurrentLang();
     }
 
-    public static GitRepo getRepo() {
+    private static synchronized Repository getJGitRepository() throws IOException {
+        if (repository == null) {
+            FileRepositoryBuilder repositoryBuilder = new FileRepositoryBuilder();
+            repositoryBuilder.setMustExist(true);
+            repositoryBuilder.setWorkTree(new File(System.getProperty("user.dir")));
+            repository = repositoryBuilder.build();
+        }
+        return repository;
+    }
+
+    public static GitRepo getRepo() throws IOException {
         if (gitRepo == null) {
-            gitRepo = new GitRepo(getGitUrlFromRepoAndEnv(), getGitBranchFromRepoAndEnv());
+            gitRepo = new GitRepo(getGitUrlFromLocalRepo(), getGitBranchFromLocalRepo());
         }
         return gitRepo;
     }
 
-    private static String runGitCommand(String gitCommand) throws BugAuditException {
-        CommandRunner runner = new CommandRunner(gitCommand);
-        runner.suppressConsoleLog();
+    public static boolean cloneRepo(String gitUrl, String gitApiToken, File dirToCloneInto) throws BugAuditException {
         try {
-            runner.execute();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        }
-        String response = runner.getStreamContent();
-        if (response.contains("command not found") || response.contains("is currently not installed")) {
-            throw new BugAuditException("Git was not found in local environment before proceeding");
-        }
-        return response;
-    }
-
-    private static String getGitUrlFromLocalRepo() throws BugAuditException {
-        String response = runGitCommand("git config --get remote.origin.url");
-        if (response != null) {
-            return response.trim();
-        }
-        return null;
-    }
-
-    private static String getGitBranchFromLocalRepo() throws BugAuditException {
-        String response = runGitCommand("git branch");
-        try {
-            return response.split("\\s+")[1];
-        } catch (Exception e) {
-            return null;
+            String cleanedGitUrl = cleanRepoUrl(gitUrl);
+            Git git = Git.cloneRepository()
+                    .setURI("https://" + cleanedGitUrl)
+                    .setDirectory(dirToCloneInto)
+                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", gitApiToken))
+                    .call();
+            git.close();
+            File gitDir = new File(".git");
+            return gitDir.exists();
+        } catch (GitAPIException e) {
+            throw new BugAuditException(e.getMessage());
         }
     }
 
-    private static String getGitUrlFromRepoAndEnv() {
-        String gitUrl = System.getenv(gitUrlEnv);
-        if (gitUrl == null) {
-            try {
-                gitUrl = getGitUrlFromLocalRepo();
-            } catch (BugAuditException e) {
-                gitUrl = null;
-            }
-            if (gitUrl == null) {
-                throw new UnsupportedOperationException("Expected " + gitUrlEnv + " environmental variable.");
-            }
-        }
-        return gitUrl;
+    public static boolean cloneRepo(String gitUrl, String gitApiToken) throws BugAuditException {
+        return cloneRepo(gitUrl, gitApiToken, new File(System.getProperty("user.dir")));
     }
 
-    private static String getGitBranchFromRepoAndEnv() {
-        String gitBranch = System.getenv(gitBranchEnv);
-        if (gitBranch == null) {
-            try {
-                gitBranch = getGitBranchFromLocalRepo();
-            } catch (BugAuditException e) {
-                gitBranch = null;
-            }
-            if (gitBranch == null) {
-                throw new UnsupportedOperationException("Expected " + gitBranchEnv + " environmental variable.");
-            }
-        }
-        return gitBranch;
+    private static String getGitUrlFromLocalRepo() throws IOException {
+        return getJGitRepository().getConfig().getString("remote", "origin", "url");
     }
 
-    private String removeEndingSequence(String source, String seq) {
+    private static String getGitBranchFromLocalRepo() throws IOException {
+        return getJGitRepository().getBranch();
+    }
+
+    private static String removeEndingSequence(String source, String seq) {
         if (source.endsWith(seq)) {
             int start = source.lastIndexOf(seq);
-            StringBuilder cleaner = new StringBuilder();
-            cleaner.append(source, 0, start);
-            cleaner.append(source.substring(start + seq.length()));
-            return cleaner.toString();
+            return source.substring(0, start) +
+                    source.substring(start + seq.length());
         }
         return source;
     }
 
-    private String cleanRepoUrl(String url) {
+    private static String cleanRepoUrl(String url) {
         if (url.contains("//")) {
             String[] split = url.split("//");
             url = split[split.length - 1];
@@ -121,12 +98,6 @@ public final class GitRepo {
         url = removeEndingSequence(url, ".git");
         url = removeEndingSequence(url, "/");
         return url.replaceFirst(":", "/");
-    }
-
-    private String cleanHost(String hostName) {
-        hostName = removeEndingSequence(hostName, "/");
-        String[] split = hostName.split("/");
-        return split[split.length - 1];
     }
 
     public Lang getLang() {

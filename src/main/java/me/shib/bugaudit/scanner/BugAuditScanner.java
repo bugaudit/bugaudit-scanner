@@ -29,7 +29,7 @@ public abstract class BugAuditScanner {
     private transient Gson gson;
     private BugAuditScanResult bugAuditScanResult;
 
-    public BugAuditScanner() {
+    public BugAuditScanner() throws IOException {
         BugAuditScannerConfig scannerConfig = getConfigFromFile();
         if (scannerConfig == null) {
             scannerConfig = getDefaultScannerConfig();
@@ -63,8 +63,8 @@ public abstract class BugAuditScanner {
         return bugAuditScanners;
     }
 
-    public static String runCommand(String command) throws IOException, InterruptedException {
-        CommandRunner commandRunner = new CommandRunner(command);
+    public String runCommand(String command) throws IOException, InterruptedException {
+        CommandRunner commandRunner = new CommandRunner(command, getTool());
         return commandRunner.execute();
     }
 

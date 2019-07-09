@@ -13,8 +13,9 @@ final class CommandRunner {
     private StreamProcessor errorProcessor;
     private StringBuilder streamContent;
     private boolean showConsoleLog;
+    private String label;
 
-    CommandRunner(String command) {
+    CommandRunner(String command, String label) {
         this.command = command;
         this.inputProcessor = new StreamProcessor(this, StreamType.INPUT);
         this.errorProcessor = new StreamProcessor(this, StreamType.ERROR);
@@ -22,12 +23,13 @@ final class CommandRunner {
         this.inputProcessor.start();
         this.errorProcessor.start();
         this.showConsoleLog = true;
+        this.label = label.toUpperCase();
     }
 
-    private synchronized void addLine(String line, StreamType type) {
+    private synchronized void addLine(String line) {
         streamContent.append(line).append("\n");
         if (showConsoleLog) {
-            System.out.println("[" + type + " STREAM] " + line);
+            System.out.println("[" + label + "] " + line);
         }
     }
 
@@ -68,7 +70,7 @@ final class CommandRunner {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
             while ((line = reader.readLine()) != null) {
-                commandRunner.addLine(line, type);
+                commandRunner.addLine(line);
             }
             reader.close();
         }
