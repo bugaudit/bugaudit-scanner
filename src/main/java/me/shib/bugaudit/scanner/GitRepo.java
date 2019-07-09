@@ -52,11 +52,19 @@ public final class GitRepo {
     public static boolean cloneRepo(String gitUrl, String gitApiToken, File dirToCloneInto) throws BugAuditException {
         try {
             String cleanedGitUrl = cleanRepoUrl(gitUrl);
-            Git git = Git.cloneRepository()
-                    .setURI("https://" + cleanedGitUrl)
-                    .setDirectory(dirToCloneInto)
-                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", gitApiToken))
-                    .call();
+            Git git;
+            if (gitApiToken == null || gitApiToken.isEmpty()) {
+                git = Git.cloneRepository()
+                        .setURI("https://" + cleanedGitUrl)
+                        .setDirectory(dirToCloneInto)
+                        .call();
+            } else {
+                git = Git.cloneRepository()
+                        .setURI("https://" + cleanedGitUrl)
+                        .setDirectory(dirToCloneInto)
+                        .setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", gitApiToken))
+                        .call();
+            }
             git.close();
             File gitDir = new File(".git");
             return gitDir.exists();
