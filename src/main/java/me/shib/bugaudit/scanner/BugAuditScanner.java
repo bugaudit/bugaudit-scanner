@@ -27,6 +27,7 @@ public abstract class BugAuditScanner {
     private static final Reflections reflections = new Reflections(BugAuditScanner.class.getPackage().getName());
     private transient boolean parserOnly;
     private transient Gson gson;
+    private transient File scanDir;
     private BugAuditScanResult bugAuditScanResult;
 
     public BugAuditScanner() throws IOException {
@@ -34,7 +35,8 @@ public abstract class BugAuditScanner {
         if (scannerConfig == null) {
             scannerConfig = getDefaultScannerConfig();
         }
-        this.bugAuditScanResult = new BugAuditScanResult(getTool(), getLang(), GitRepo.getRepo(), scannerConfig.getClassificationPriorityMap(), makeScannerDir());
+        this.scanDir = calculateScanDir();
+        this.bugAuditScanResult = new BugAuditScanResult(getTool(), getLang(), GitRepo.getRepo(), scannerConfig.getClassificationPriorityMap(), getScannerDirLabel());
         this.parserOnly = System.getenv(scannerParserOnlyEnv) != null && System.getenv(scannerParserOnlyEnv).equalsIgnoreCase("TRUE");
         this.gson = new GsonBuilder().create();
     }
@@ -64,7 +66,13 @@ public abstract class BugAuditScanner {
     }
 
     public String runCommand(String command) throws IOException, InterruptedException {
-        CommandRunner commandRunner = new CommandRunner(command, getTool());
+        CommandRunner commandRunner;
+        if (scanDir != null) {
+            commandRunner = new CommandRunner(command, scanDir, getTool());
+        } else {
+            commandRunner = new CommandRunner(command, getTool());
+        }
+        commandRunner = new CommandRunner(command, getTool());
         return commandRunner.execute();
     }
 
@@ -72,14 +80,24 @@ public abstract class BugAuditScanner {
         return parserOnly;
     }
 
-    private String makeScannerDir() {
-        String path = System.getenv(scannerDirPathEnv);
+    private File calculateScanDir() {
+        String scanDirPath = System.getenv(scannerDirPathEnv);
         String currentPath = System.getProperty("user.dir");
-        if (path == null || path.isEmpty() || !currentPath.endsWith(path)) {
-            return null;
+        if (scanDirPath != null && !scanDirPath.isEmpty() &&
+                !scanDirPath.startsWith("/") && currentPath.endsWith(scanDirPath)) {
+            File scanDir = new File(scanDirPath);
+            if (scanDir.isDirectory()) {
+                return scanDir;
+            }
         }
-        path = "scanpath-" + path;
-        return path;
+        return null;
+    }
+
+    private String getScannerDirLabel() {
+        if (scanDir != null) {
+            return "bugaudit-scanpath-" + scanDir.getPath();
+        }
+        return null;
     }
 
     protected String getUrlForCVE(String cve) throws BugAuditException {

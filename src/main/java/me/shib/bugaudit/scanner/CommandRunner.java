@@ -1,9 +1,6 @@
 package me.shib.bugaudit.scanner;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
 final class CommandRunner {
 
@@ -14,9 +11,11 @@ final class CommandRunner {
     private StringBuilder streamContent;
     private boolean showConsoleLog;
     private String label;
+    private File workDir;
 
-    CommandRunner(String command, String label) {
+    CommandRunner(String command, File workDir, String label) {
         this.command = command;
+        this.workDir = workDir;
         this.inputProcessor = new StreamProcessor(this, StreamType.INPUT);
         this.errorProcessor = new StreamProcessor(this, StreamType.ERROR);
         this.streamContent = new StringBuilder();
@@ -24,6 +23,10 @@ final class CommandRunner {
         this.errorProcessor.start();
         this.showConsoleLog = true;
         this.label = label.toUpperCase();
+    }
+
+    CommandRunner(String command, String label) {
+        this(command, null, label);
     }
 
     private synchronized void addLine(String line) {
@@ -46,7 +49,11 @@ final class CommandRunner {
     }
 
     String execute() throws IOException, InterruptedException {
-        process = Runtime.getRuntime().exec(command);
+        if (workDir != null) {
+            process = Runtime.getRuntime().exec(command, null, workDir);
+        } else {
+            process = Runtime.getRuntime().exec(command);
+        }
         this.inputProcessor.join();
         this.errorProcessor.join();
         return streamContent.toString();
