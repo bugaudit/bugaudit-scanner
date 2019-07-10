@@ -50,6 +50,7 @@ public final class GitRepo {
     }
 
     public static boolean cloneRepo(String gitUrl, String username, String password, File dirToCloneInto) throws BugAuditException {
+        System.out.println("Cloning repo: " + gitUrl);
         try {
             String cleanedGitUrl = cleanRepoUrl(gitUrl);
             Git git;
