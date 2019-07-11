@@ -1,12 +1,14 @@
 package me.shib.bugaudit.scanner;
 
+import com.jcraft.jsch.Session;
 import me.shib.bugaudit.commons.BugAuditException;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +67,7 @@ public final class GitRepo {
         return false;
     }
 
-    public static boolean cloneRepo(String gitUrl, String branch, String username, String password, File cloneDir) throws BugAuditException {
+    public static boolean cloneRepo(String gitUrl, String branch, String authToken, String sshKey, File cloneDir) throws BugAuditException {
         if (cloneDir == null) {
             cloneDir = new File(System.getProperty("user.dir"));
         }
@@ -78,19 +80,31 @@ public final class GitRepo {
         System.out.println("Cloning...");
         System.out.println("Repository: " + gitUrl);
         try {
-            String cleanedGitUrl = cleanRepoUrl(gitUrl);
+            GitRepo tempRepo = new GitRepo(gitUrl, null);
             CloneCommand cloneCommand = Git.cloneRepository()
-                    .setURI("https://" + cleanedGitUrl)
                     .setDirectory(cloneDir);
             if (branch != null && !branch.isEmpty()) {
                 System.out.println("Branch: " + branch);
                 cloneCommand.setBranch(branch);
             }
-            if (password != null && !password.isEmpty()) {
-                if (username == null || username.isEmpty()) {
-                    username = "git";
-                }
-                cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
+            if (authToken != null && !authToken.isEmpty()) {
+                cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", authToken));
+                cloneCommand.setURI(tempRepo.getUrl());
+            } else if (sshKey != null && !sshKey.isEmpty()) {
+                cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport) transport;
+                        sshTransport.setSshSessionFactory(new JschConfigSessionFactory() {
+                            @Override
+                            protected void configure(OpenSshConfig.Host host, Session session) {
+                            }
+                        });
+                    }
+                });
+                cloneCommand.setURI(tempRepo.getSSHPath());
+            } else {
+                cloneCommand.setURI(tempRepo.getUrl());
             }
             Git git = cloneCommand.call();
             git.close();
@@ -98,18 +112,6 @@ public final class GitRepo {
         } catch (GitAPIException e) {
             throw new BugAuditException(e.getMessage());
         }
-    }
-
-    public static boolean cloneRepo(String gitUrl, String branch, String authToken, File dirToCloneInto) throws BugAuditException {
-        return cloneRepo(gitUrl, branch, null, authToken, dirToCloneInto);
-    }
-
-    public static boolean cloneRepo(String gitUrl, String branch, String username, String password) throws BugAuditException {
-        return cloneRepo(gitUrl, branch, username, password, new File(System.getProperty("user.dir")));
-    }
-
-    public static boolean cloneRepo(String gitUrl, String branch, String gitApiToken) throws BugAuditException {
-        return cloneRepo(gitUrl, branch, gitApiToken, new File(System.getProperty("user.dir")));
     }
 
     private static String getGitUrlFromLocalRepo() throws IOException {
@@ -160,7 +162,11 @@ public final class GitRepo {
     }
 
     public String getUrl() {
-        return "https://" + host + "/" + owner + "/" + repoName;
+        return "https://" + host + "/" + owner + "/" + repoName + ".git";
+    }
+
+    public String getSSHPath() {
+        return "git@" + host + ":" + owner + "/" + repoName + ".git";
     }
 
     public String getBranch() {
