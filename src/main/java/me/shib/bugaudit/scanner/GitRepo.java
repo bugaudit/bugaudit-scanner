@@ -1,6 +1,7 @@
 package me.shib.bugaudit.scanner;
 
 import me.shib.bugaudit.commons.BugAuditException;
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
@@ -49,44 +50,66 @@ public final class GitRepo {
         return gitRepo;
     }
 
-    public static boolean cloneRepo(String gitUrl, String username, String password, File dirToCloneInto) throws BugAuditException {
-        System.out.println("Cloning repo: " + gitUrl);
+    private static boolean isGitRepo(File dir) {
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.getName().equalsIgnoreCase(".git") && file.isDirectory()) {
+                        System.out.println(file.getAbsolutePath());
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean cloneRepo(String gitUrl, String branch, String username, String password, File cloneDir) throws BugAuditException {
+        if (cloneDir == null) {
+            cloneDir = new File(System.getProperty("user.dir"));
+        }
+        if (isGitRepo(cloneDir)) {
+            throw new BugAuditException("A Git Repository already exists in: " + cloneDir.getAbsolutePath());
+        }
+        if (gitUrl == null || gitUrl.isEmpty()) {
+            throw new BugAuditException("Invalid Git Repository URL: " + gitUrl);
+        }
+        System.out.println("Cloning...");
+        System.out.println("Repository: " + gitUrl);
         try {
             String cleanedGitUrl = cleanRepoUrl(gitUrl);
-            Git git;
-            if (password == null || password.isEmpty()) {
-                git = Git.cloneRepository()
-                        .setURI("https://" + cleanedGitUrl)
-                        .setDirectory(dirToCloneInto)
-                        .call();
-            } else {
+            CloneCommand cloneCommand = Git.cloneRepository()
+                    .setURI("https://" + cleanedGitUrl)
+                    .setDirectory(cloneDir);
+            if (branch != null && !branch.isEmpty()) {
+                System.out.println("Branch: " + branch);
+                cloneCommand.setBranch(branch);
+            }
+            if (password != null && !password.isEmpty()) {
                 if (username == null || username.isEmpty()) {
                     username = "git";
                 }
-                git = Git.cloneRepository()
-                        .setURI("https://" + cleanedGitUrl)
-                        .setDirectory(dirToCloneInto)
-                        .setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password))
-                        .call();
+                cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
             }
+            Git git = cloneCommand.call();
             git.close();
-            File gitDir = new File(".git");
-            return gitDir.exists();
+            return isGitRepo(cloneDir);
         } catch (GitAPIException e) {
             throw new BugAuditException(e.getMessage());
         }
     }
 
-    public static boolean cloneRepo(String gitUrl, String authToken, File dirToCloneInto) throws BugAuditException {
-        return cloneRepo(gitUrl, null, authToken, dirToCloneInto);
+    public static boolean cloneRepo(String gitUrl, String branch, String authToken, File dirToCloneInto) throws BugAuditException {
+        return cloneRepo(gitUrl, branch, null, authToken, dirToCloneInto);
     }
 
-    public static boolean cloneRepo(String gitUrl, String username, String password) throws BugAuditException {
-        return cloneRepo(gitUrl, username, password, new File(System.getProperty("user.dir")));
+    public static boolean cloneRepo(String gitUrl, String branch, String username, String password) throws BugAuditException {
+        return cloneRepo(gitUrl, branch, username, password, new File(System.getProperty("user.dir")));
     }
 
-    public static boolean cloneRepo(String gitUrl, String gitApiToken) throws BugAuditException {
-        return cloneRepo(gitUrl, gitApiToken, new File(System.getProperty("user.dir")));
+    public static boolean cloneRepo(String gitUrl, String branch, String gitApiToken) throws BugAuditException {
+        return cloneRepo(gitUrl, branch, gitApiToken, new File(System.getProperty("user.dir")));
     }
 
     private static String getGitUrlFromLocalRepo() throws IOException {
