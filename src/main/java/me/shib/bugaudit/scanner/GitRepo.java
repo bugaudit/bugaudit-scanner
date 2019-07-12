@@ -1,14 +1,7 @@
 package me.shib.bugaudit.scanner;
 
-import com.jcraft.jsch.Session;
-import me.shib.bugaudit.commons.BugAuditException;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.TransportConfigCallback;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,53 +58,6 @@ public final class GitRepo {
             }
         }
         return false;
-    }
-
-    public static boolean cloneRepo(String gitUrl, String branch, String authToken, boolean sshKeyAuth, File cloneDir) throws BugAuditException {
-        if (cloneDir == null) {
-            cloneDir = new File(System.getProperty("user.dir"));
-        }
-        if (isGitRepo(cloneDir)) {
-            throw new BugAuditException("A Git Repository already exists in: " + cloneDir.getAbsolutePath());
-        }
-        if (gitUrl == null || gitUrl.isEmpty()) {
-            throw new BugAuditException("Invalid Git Repository URL: " + gitUrl);
-        }
-        System.out.println("Cloning...");
-        System.out.println("Repository: " + gitUrl);
-        try {
-            GitRepo tempRepo = new GitRepo(gitUrl, null);
-            CloneCommand cloneCommand = Git.cloneRepository()
-                    .setDirectory(cloneDir);
-            if (branch != null && !branch.isEmpty()) {
-                System.out.println("Branch: " + branch);
-                cloneCommand.setBranch(branch);
-            }
-            if (authToken != null && !authToken.isEmpty()) {
-                cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", authToken));
-                cloneCommand.setURI(tempRepo.getUrl());
-            } else if (sshKeyAuth) {
-                cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport) transport;
-                        sshTransport.setSshSessionFactory(new JschConfigSessionFactory() {
-                            @Override
-                            protected void configure(OpenSshConfig.Host host, Session session) {
-                            }
-                        });
-                    }
-                });
-                cloneCommand.setURI(tempRepo.getSSHPath());
-            } else {
-                cloneCommand.setURI(tempRepo.getUrl());
-            }
-            Git git = cloneCommand.call();
-            git.close();
-            return isGitRepo(cloneDir);
-        } catch (GitAPIException e) {
-            throw new BugAuditException(e.getMessage());
-        }
     }
 
     private static String getGitUrlFromLocalRepo() throws IOException {
