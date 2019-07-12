@@ -67,7 +67,7 @@ public final class GitRepo {
         return false;
     }
 
-    public static boolean cloneRepo(String gitUrl, String branch, String authToken, String sshKey, File cloneDir) throws BugAuditException {
+    public static boolean cloneRepo(String gitUrl, String branch, String authToken, boolean sshKeyAuth, File cloneDir) throws BugAuditException {
         if (cloneDir == null) {
             cloneDir = new File(System.getProperty("user.dir"));
         }
@@ -90,7 +90,7 @@ public final class GitRepo {
             if (authToken != null && !authToken.isEmpty()) {
                 cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", authToken));
                 cloneCommand.setURI(tempRepo.getUrl());
-            } else if (sshKey != null && !sshKey.isEmpty()) {
+            } else if (sshKeyAuth) {
                 cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
                     @Override
                     public void configure(Transport transport) {
