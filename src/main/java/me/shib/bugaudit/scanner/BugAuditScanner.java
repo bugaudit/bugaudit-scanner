@@ -30,7 +30,7 @@ public abstract class BugAuditScanner {
     private transient File scanDir;
     private BugAuditScanResult bugAuditScanResult;
 
-    public BugAuditScanner() throws IOException {
+    public BugAuditScanner() throws BugAuditException {
         BugAuditScannerConfig scannerConfig = getConfigFromFile();
         if (scannerConfig == null) {
             scannerConfig = getDefaultScannerConfig();

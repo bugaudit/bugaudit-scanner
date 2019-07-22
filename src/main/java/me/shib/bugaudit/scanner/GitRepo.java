@@ -1,15 +1,16 @@
 package me.shib.bugaudit.scanner;
 
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import me.shib.bugaudit.commons.BugAuditException;
 
 import java.io.File;
 import java.io.IOException;
 
 public final class GitRepo {
 
+    private static final String gitUrlEnv = "BUGAUDIT_GIT_REPO";
+    private static final String gitBranchEnv = "BUGAUDIT_GIT_BRANCH";
+
     private static GitRepo gitRepo;
-    private static Repository repository;
 
     private String host;
     private String owner;
@@ -28,19 +29,9 @@ public final class GitRepo {
         this.lang = Lang.getCurrentLang();
     }
 
-    private static synchronized Repository getJGitRepository() throws IOException {
-        if (repository == null) {
-            FileRepositoryBuilder repositoryBuilder = new FileRepositoryBuilder();
-            repositoryBuilder.setMustExist(true);
-            repositoryBuilder.setWorkTree(new File(System.getProperty("user.dir")));
-            repository = repositoryBuilder.build();
-        }
-        return repository;
-    }
-
-    public static GitRepo getRepo() throws IOException {
+    public static GitRepo getRepo() throws BugAuditException {
         if (gitRepo == null) {
-            gitRepo = new GitRepo(getGitUrlFromLocalRepo(), getGitBranchFromLocalRepo());
+            gitRepo = new GitRepo(getGitUrlFromRepoAndEnv(), getGitBranchFromRepoAndEnv());
         }
         return gitRepo;
     }
@@ -60,12 +51,69 @@ public final class GitRepo {
         return false;
     }
 
-    private static String getGitUrlFromLocalRepo() throws IOException {
-        return getJGitRepository().getConfig().getString("remote", "origin", "url");
+    private static String runGitCommand(String gitCommand) throws BugAuditException {
+        CommandRunner runner = new CommandRunner(gitCommand, "Git");
+        runner.suppressConsoleLog();
+        try {
+            runner.execute();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
+        String response = runner.getStreamContent();
+        if (response.contains("command not found") || response.contains("is currently not installed")) {
+            throw new BugAuditException("Git was not found in local environment before proceeding");
+        }
+        return response;
     }
 
-    private static String getGitBranchFromLocalRepo() throws IOException {
-        return getJGitRepository().getBranch();
+    private static String getGitUrlFromLocalRepo() throws BugAuditException {
+        String response = runGitCommand("git config --get remote.origin.url");
+        if (response != null) {
+            return response.trim();
+        }
+        return null;
+    }
+
+    private static String getGitBranchFromLocalRepo() throws BugAuditException {
+        String response = runGitCommand("git branch");
+        try {
+            return response.split("\\s+")[1];
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String getGitUrlFromRepoAndEnv() throws BugAuditException {
+        String gitUrl = System.getenv(gitUrlEnv);
+        if (gitUrl == null) {
+            try {
+                gitUrl = getGitUrlFromLocalRepo();
+            } catch (BugAuditException e) {
+                gitUrl = null;
+            }
+            if (gitUrl == null) {
+                throw new BugAuditException("Run inside a Git repo or provide " +
+                        gitUrlEnv + " environmental variable.");
+            }
+        }
+        return gitUrl;
+    }
+
+    private static String getGitBranchFromRepoAndEnv() throws BugAuditException {
+        String gitBranch = System.getenv(gitBranchEnv);
+        if (gitBranch == null) {
+            try {
+                gitBranch = getGitBranchFromLocalRepo();
+            } catch (BugAuditException e) {
+                gitBranch = null;
+            }
+            if (gitBranch == null) {
+                throw new BugAuditException("Run inside a Git repo or provide " +
+                        gitBranchEnv + " environmental variable.");
+            }
+        }
+        return gitBranch;
     }
 
     private static String removeEndingSequence(String source, String seq) {
