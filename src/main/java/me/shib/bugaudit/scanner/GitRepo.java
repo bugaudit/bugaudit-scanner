@@ -9,6 +9,7 @@ public final class GitRepo {
 
     private static final String gitUrlEnv = "BUGAUDIT_GIT_REPO";
     private static final String gitBranchEnv = "BUGAUDIT_GIT_BRANCH";
+    private static final String gitCommitEnv = "BUGAUDIT_GIT_COMMIT";
 
     private static GitRepo gitRepo;
 
@@ -16,9 +17,10 @@ public final class GitRepo {
     private String owner;
     private String repoName;
     private String branch;
+    private String commit;
     private Lang lang;
 
-    private GitRepo(String url, String branch) {
+    private GitRepo(String url, String branch, String commit) {
         url = cleanRepoUrl(url);
         String[] urlSplit = url.split("/");
         this.host = urlSplit[0];
@@ -26,12 +28,14 @@ public final class GitRepo {
         this.owner = url.replaceFirst(host + "/", "");
         this.owner = removeEndingSequence(owner, "/" + repoName);
         this.branch = branch;
+        this.commit = commit;
         this.lang = Lang.getCurrentLang();
     }
 
     public static GitRepo getRepo() throws BugAuditException {
         if (gitRepo == null) {
-            gitRepo = new GitRepo(getGitUrlFromRepoAndEnv(), getGitBranchFromRepoAndEnv());
+            gitRepo = new GitRepo(getGitUrlFromRepoAndEnv(), getGitBranchFromRepoAndEnv(),
+                    getGitCommitFromRepoAndEnv());
         }
         return gitRepo;
     }
@@ -84,9 +88,17 @@ public final class GitRepo {
         }
     }
 
+    private static String getGitCommitFromLocalRepo() throws BugAuditException {
+        String commit = runGitCommand("git show --format=%H --no-patch");
+        if (commit == null || commit.isEmpty()) {
+            return null;
+        }
+        return commit.trim();
+    }
+
     private static String getGitUrlFromRepoAndEnv() throws BugAuditException {
         String gitUrl = System.getenv(gitUrlEnv);
-        if (gitUrl == null) {
+        if (gitUrl == null || gitUrl.isEmpty()) {
             try {
                 gitUrl = getGitUrlFromLocalRepo();
             } catch (BugAuditException e) {
@@ -102,7 +114,7 @@ public final class GitRepo {
 
     private static String getGitBranchFromRepoAndEnv() throws BugAuditException {
         String gitBranch = System.getenv(gitBranchEnv);
-        if (gitBranch == null) {
+        if (gitBranch == null || gitBranch.isEmpty()) {
             try {
                 gitBranch = getGitBranchFromLocalRepo();
             } catch (BugAuditException e) {
@@ -114,6 +126,22 @@ public final class GitRepo {
             }
         }
         return gitBranch;
+    }
+
+    private static String getGitCommitFromRepoAndEnv() throws BugAuditException {
+        String gitCommit = System.getenv(gitCommitEnv);
+        if (gitCommit == null || gitCommit.isEmpty()) {
+            try {
+                gitCommit = getGitCommitFromLocalRepo();
+            } catch (BugAuditException e) {
+                gitCommit = null;
+            }
+            if (gitCommit == null) {
+                throw new BugAuditException("Run inside a Git repo or provide " +
+                        gitBranchEnv + " environmental variable.");
+            }
+        }
+        return gitCommit;
     }
 
     private static String removeEndingSequence(String source, String seq) {
@@ -165,6 +193,10 @@ public final class GitRepo {
 
     public String getBranch() {
         return branch;
+    }
+
+    public String getCommit() {
+        return commit;
     }
 
     @Override
