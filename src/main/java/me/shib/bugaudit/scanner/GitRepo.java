@@ -183,7 +183,11 @@ public final class GitRepo {
         return repoName;
     }
 
-    public String getUrl() {
+    public String getWebUrl() {
+        return "https://" + host + "/" + owner + "/" + repoName;
+    }
+
+    public String getRepoUrl() {
         return "https://" + host + "/" + owner + "/" + repoName + ".git";
     }
 
