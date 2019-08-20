@@ -36,7 +36,11 @@ public abstract class BugAuditScanner {
             scannerConfig = getDefaultScannerConfig();
         }
         this.scanDir = calculateScanDir();
-        this.bugAuditScanResult = new BugAuditScanResult(getTool(), getLang(), GitRepo.getRepo(), scannerConfig.getClassificationPriorityMap(), getScannerDirLabel());
+        Map<String, Integer> classificationPriorityMap = null;
+        if (scannerConfig != null) {
+            classificationPriorityMap = scannerConfig.getClassificationPriorityMap();
+        }
+        this.bugAuditScanResult = new BugAuditScanResult(getTool(), getLang(), GitRepo.getRepo(), classificationPriorityMap, getScannerDirLabel());
         this.parserOnly = System.getenv(scannerParserOnlyEnv) != null && System.getenv(scannerParserOnlyEnv).equalsIgnoreCase("TRUE");
         this.gson = new GsonBuilder().create();
     }
