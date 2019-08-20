@@ -4,7 +4,7 @@ import me.shib.bugaudit.commons.BugAuditException;
 
 import java.util.*;
 
-public class BugAuditScanResult {
+public final class BugAuditScanResult {
 
     private static final String bugAuditLabel = "BugAudit";
 
