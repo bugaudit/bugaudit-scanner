@@ -7,7 +7,7 @@ import java.util.List;
 
 public enum Lang {
 
-    GoLang, Java, JavaScript, Python, Ruby, Undefined;
+    GoLang, Java, JavaScript, Python, Ruby, Unknown;
 
     private static final String langEnv = "BUGAUDIT_LANG";
     private static Lang lang;

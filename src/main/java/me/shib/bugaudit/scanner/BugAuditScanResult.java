@@ -11,19 +11,16 @@ public final class BugAuditScanResult {
     private String tool;
     private Lang lang;
     private GitRepo repo;
-    private Map<String, Integer> priorityMap;
+    private Map<String, Integer> typeToPriorityMap;
     private Set<String> keys;
     private Map<String, Bug> bugMap;
     private String scanPath;
 
-    public BugAuditScanResult(String tool, Lang lang, GitRepo repo, Map<String, Integer> priorityMap, String scanPath) {
+    public BugAuditScanResult(String tool, Lang lang, GitRepo repo, String scanPath) {
         this.tool = tool;
         this.lang = lang;
         this.repo = repo;
-        this.priorityMap = priorityMap;
-        if (this.priorityMap == null) {
-            this.priorityMap = new HashMap<>();
-        }
+        this.typeToPriorityMap = new HashMap<>();
         this.scanPath = scanPath;
         this.keys = new HashSet<>();
         this.bugMap = new HashMap<>();
@@ -34,11 +31,18 @@ public final class BugAuditScanResult {
     }
 
     private void applyPriorityFilters(Bug bug) {
-        for (String type : priorityMap.keySet()) {
+        for (String type : typeToPriorityMap.keySet()) {
             if ((type == null || bug.getTypes().contains(type)) &&
-                    (bug.getPriority() > priorityMap.get(type))) {
-                bug.setPriority(priorityMap.get(type));
+                    (bug.getPriority() > typeToPriorityMap.get(type))) {
+                bug.setPriority(typeToPriorityMap.get(type));
             }
+        }
+    }
+
+    public void setTypeToPriorityMap(Map<String, Integer> typeToPriorityMap) {
+        this.typeToPriorityMap = typeToPriorityMap;
+        for (Bug bug : bugMap.values()) {
+            applyPriorityFilters(bug);
         }
     }
 

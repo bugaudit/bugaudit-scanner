@@ -1,8 +1,5 @@
 package me.shib.bugaudit.scanner;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import me.shib.bugaudit.commons.BugAuditException;
 import org.reflections.Reflections;
 
@@ -11,10 +8,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public abstract class BugAuditScanner {
@@ -22,31 +17,22 @@ public abstract class BugAuditScanner {
     private static final String scannerParserOnlyEnv = "BUGAUDIT_SCANNER_PARSERONLY";
     private static final String scannerToolEnv = "BUGAUDIT_SCANNER_TOOL";
     private static final String scannerDirPathEnv = "BUGAUDIT_SCANNER_DIR";
-    private static final String scannerConfigFilePath = System.getenv("BUGAUDIT_SCANNER_CONFIG");
+    private static final String bugauditBuildScriptEnv = "BUGAUDIT_BUILD_SCRIPT";
     private static final String cveBaseURL = "https://nvd.nist.gov/vuln/detail/";
     private static final Reflections reflections = new Reflections(BugAuditScanner.class.getPackage().getName());
+
     private transient boolean parserOnly;
-    private transient Gson gson;
     private transient File scanDir;
-    private BugAuditScanResult bugAuditScanResult;
+    private transient BugAuditScanResult bugAuditScanResult;
 
     public BugAuditScanner() throws BugAuditException {
-        BugAuditScannerConfig scannerConfig = getConfigFromFile();
-        if (scannerConfig == null) {
-            scannerConfig = getDefaultScannerConfig();
-        }
         this.scanDir = calculateScanDir();
-        Map<String, Integer> classificationPriorityMap = null;
-        if (scannerConfig != null) {
-            classificationPriorityMap = scannerConfig.getClassificationPriorityMap();
-        }
-        this.bugAuditScanResult = new BugAuditScanResult(getTool(), getLang(), GitRepo.getRepo(), classificationPriorityMap, getScannerDirLabel());
+        this.bugAuditScanResult = new BugAuditScanResult(getTool(), getLang(), GitRepo.getRepo(), getScannerDirLabel());
         this.parserOnly = System.getenv(scannerParserOnlyEnv) != null && System.getenv(scannerParserOnlyEnv).equalsIgnoreCase("TRUE");
-        this.gson = new GsonBuilder().create();
     }
 
     public static synchronized List<BugAuditScanner> getScanners(GitRepo repo) {
-        String scannerToolName = System.getenv(scannerToolEnv);
+        String specifiedToolName = System.getenv(scannerToolEnv);
         List<BugAuditScanner> bugAuditScanners = new ArrayList<>();
         if (repo.getLang() != null) {
             Set<Class<? extends BugAuditScanner>> scannerClasses = reflections.getSubTypesOf(BugAuditScanner.class);
@@ -55,9 +41,13 @@ public abstract class BugAuditScanner {
                     Class<?> clazz = Class.forName(scannerClass.getName());
                     Constructor<?> constructor = clazz.getConstructor();
                     BugAuditScanner bugAuditScanner = (BugAuditScanner) constructor.newInstance();
-                    if (bugAuditScanner.getLang() == repo.getLang()) {
-                        if (scannerToolName == null || scannerToolName.isEmpty() ||
-                                scannerToolName.equalsIgnoreCase(bugAuditScanner.getTool())) {
+                    Lang scannerLang = bugAuditScanner.getLang();
+                    if (scannerLang == null) {
+                        scannerLang = Lang.Unknown;
+                    }
+                    if (scannerLang == repo.getLang()) {
+                        if (specifiedToolName == null || specifiedToolName.isEmpty() ||
+                                specifiedToolName.equalsIgnoreCase(bugAuditScanner.getTool())) {
                             bugAuditScanners.add(bugAuditScanner);
                         }
                     }
@@ -125,34 +115,27 @@ public abstract class BugAuditScanner {
         return contentBuilder.toString();
     }
 
-    private BugAuditScannerConfig getConfigFromFile() {
-        try {
-            if (scannerConfigFilePath != null && !scannerConfigFilePath.isEmpty()) {
-                File scannerConfigFile = new File(scannerConfigFilePath);
-                if (scannerConfigFile.exists()) {
-                    String json = readFromFile(scannerConfigFile);
-                    Type type = new TypeToken<Map<String, BugAuditScannerConfig>>() {
-                    }.getType();
-                    Map<String, BugAuditScannerConfig> configMap = gson.fromJson(json, type);
-                    return configMap.get(getTool());
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void buildAndScan() throws Exception {
+        buildProject();
+        scan();
+    }
+
+    private void buildProject() throws IOException, InterruptedException {
+        String bugauditBuildScript = System.getenv(bugauditBuildScriptEnv);
+        if (bugauditBuildScript != null && !bugauditBuildScript.isEmpty()) {
+            System.out.println("Building Project...");
+            runCommand(bugauditBuildScript);
         }
-        return null;
     }
 
     public BugAuditScanResult getBugAuditScanResult() {
         return bugAuditScanResult;
     }
 
-    protected abstract BugAuditScannerConfig getDefaultScannerConfig();
-
     protected abstract Lang getLang();
 
     public abstract String getTool();
 
-    public abstract void scan() throws Exception;
+    protected abstract void scan() throws Exception;
 
 }
