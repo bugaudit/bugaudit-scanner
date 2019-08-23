@@ -31,10 +31,10 @@ public abstract class BugAuditScanner {
         this.parserOnly = System.getenv(scannerParserOnlyEnv) != null && System.getenv(scannerParserOnlyEnv).equalsIgnoreCase("TRUE");
     }
 
-    public static synchronized List<BugAuditScanner> getScanners(GitRepo repo) {
+    public static synchronized List<BugAuditScanner> getScanners(Lang lang) {
         String specifiedToolName = System.getenv(scannerToolEnv);
         List<BugAuditScanner> bugAuditScanners = new ArrayList<>();
-        if (repo.getLang() != null) {
+        if (lang != null) {
             Set<Class<? extends BugAuditScanner>> scannerClasses = reflections.getSubTypesOf(BugAuditScanner.class);
             for (Class<? extends BugAuditScanner> scannerClass : scannerClasses) {
                 try {
@@ -45,7 +45,7 @@ public abstract class BugAuditScanner {
                     if (scannerLang == null) {
                         scannerLang = Lang.Unknown;
                     }
-                    if (scannerLang == repo.getLang()) {
+                    if (scannerLang == lang) {
                         if (specifiedToolName == null || specifiedToolName.isEmpty() ||
                                 specifiedToolName.equalsIgnoreCase(bugAuditScanner.getTool())) {
                             bugAuditScanners.add(bugAuditScanner);
