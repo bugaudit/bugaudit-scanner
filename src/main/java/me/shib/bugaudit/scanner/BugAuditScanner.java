@@ -16,7 +16,7 @@ public abstract class BugAuditScanner {
 
     private static final String scannerParserOnlyEnv = "BUGAUDIT_SCANNER_PARSERONLY";
     private static final String scannerToolEnv = "BUGAUDIT_SCANNER_TOOL";
-    private static final String scannerDirPathEnv = "BUGAUDIT_SCANNER_DIR";
+    private static final String scannerDirPathEnv = "BUGAUDIT_SCAN_DIR";
     private static final String bugauditBuildScriptEnv = "BUGAUDIT_BUILD_SCRIPT";
     private static final String cveBaseURL = "https://nvd.nist.gov/vuln/detail/";
     private static final Reflections reflections = new Reflections(BugAuditScanner.class.getPackage().getName());
