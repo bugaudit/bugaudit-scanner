@@ -46,10 +46,6 @@ public final class BugAuditScanResult {
         }
     }
 
-    public Bug newBug(String title, int priority) throws BugAuditException {
-        return new Bug(title, priority);
-    }
-
     public void addBug(Bug bug) throws BugAuditException {
         bug.addKey(repo.toString());
         bug.addKey(tool);

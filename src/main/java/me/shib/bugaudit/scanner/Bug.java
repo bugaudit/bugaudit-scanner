@@ -17,7 +17,7 @@ public final class Bug {
     private Set<String> keys;
     private Set<String> tags;
 
-    Bug(String title, int priority) throws BugAuditException {
+    public Bug(String title, int priority) throws BugAuditException {
         this.title = title;
         this.priority = priority;
         this.types = new HashSet<>();
