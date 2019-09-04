@@ -64,7 +64,7 @@ public final class GitRepo {
             e.printStackTrace();
             return null;
         }
-        String response = runner.getStreamContent();
+        String response = runner.getResult();
         if (response.contains("command not found") || response.contains("is currently not installed")) {
             throw new BugAuditException("Git was not found in local environment before proceeding");
         }

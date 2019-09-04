@@ -44,11 +44,11 @@ final class CommandRunner {
         this.showConsoleLog = false;
     }
 
-    String getStreamContent() {
+    String getResult() {
         return streamContent.toString();
     }
 
-    String execute() throws IOException, InterruptedException {
+    int execute() throws IOException, InterruptedException {
         if (workDir != null) {
             process = Runtime.getRuntime().exec(command, null, workDir);
         } else {
@@ -56,7 +56,7 @@ final class CommandRunner {
         }
         this.inputProcessor.join();
         this.errorProcessor.join();
-        return streamContent.toString();
+        return process.exitValue();
     }
 
     private enum StreamType {
