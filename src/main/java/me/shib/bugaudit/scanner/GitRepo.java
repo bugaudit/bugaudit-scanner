@@ -183,6 +183,10 @@ public final class GitRepo {
         return repoName;
     }
 
+    public String getRepoSlug() {
+        return owner + "/" + repoName;
+    }
+
     public String getWebUrl() {
         return "https://" + host + "/" + owner + "/" + repoName;
     }
@@ -205,6 +209,6 @@ public final class GitRepo {
 
     @Override
     public String toString() {
-        return owner + "/" + repoName;
+        return getRepoSlug();
     }
 }
