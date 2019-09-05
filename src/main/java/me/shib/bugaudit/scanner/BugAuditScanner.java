@@ -78,10 +78,9 @@ public abstract class BugAuditScanner {
     private static File calculateScanDir() {
         String scanDirPath = System.getenv(scannerDirPathEnv);
         String currentPath = System.getProperty("user.dir");
-        if (scanDirPath != null && !scanDirPath.isEmpty() &&
-                !scanDirPath.startsWith("/") && currentPath.endsWith(scanDirPath)) {
+        if (scanDirPath != null && !scanDirPath.isEmpty() && !scanDirPath.startsWith("/")) {
             File scanDir = new File(scanDirPath);
-            if (scanDir.isDirectory()) {
+            if (scanDir.isDirectory() && scanDir.getAbsolutePath().startsWith(currentPath)) {
                 return scanDir;
             }
         }
