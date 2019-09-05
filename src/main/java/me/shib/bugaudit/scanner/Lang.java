@@ -29,8 +29,13 @@ public enum Lang {
     }
 
     private static Lang findLangFromCode() {
-        File currentDir = Paths.get("").toAbsolutePath().toFile();
-        String[] fileArr = currentDir.list();
+        File dir;
+        if (BugAuditScanner.scanDir != null) {
+            dir = BugAuditScanner.scanDir;
+        } else {
+            dir = Paths.get("").toAbsolutePath().toFile();
+        }
+        String[] fileArr = dir.list();
         if (fileArr != null) {
             List<String> files = Arrays.asList(fileArr);
             if (files.contains("pom.xml")) {
