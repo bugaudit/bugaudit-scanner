@@ -56,6 +56,7 @@ final class CommandRunner {
         }
         this.inputProcessor.join();
         this.errorProcessor.join();
+        process.waitFor();
         return process.exitValue();
     }
 
