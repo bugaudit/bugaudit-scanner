@@ -88,7 +88,7 @@ public abstract class BugAuditScanner {
                 return scanDir;
             }
         }
-        return null;
+        return new File(System.getProperty("user.dir"));
     }
 
     protected String runCommand(String command) throws IOException, InterruptedException {
@@ -108,7 +108,10 @@ public abstract class BugAuditScanner {
 
     private String getScannerDirLabel() {
         if (scanDir != null) {
-            return "bugaudit-scan-dir-" + scanDir.getPath();
+            File currentDir = new File(System.getProperty("user.dir"));
+            if (!scanDir.equals(currentDir)) {
+                return "bugaudit-scan-dir-" + scanDir.getPath();
+            }
         }
         return null;
     }
