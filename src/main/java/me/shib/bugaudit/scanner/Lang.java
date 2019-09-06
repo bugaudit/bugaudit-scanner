@@ -30,8 +30,8 @@ public enum Lang {
 
     private static Lang findLangFromCode() {
         File dir;
-        if (BugAuditScanner.scanDir != null) {
-            dir = BugAuditScanner.scanDir;
+        if (BugAuditScanner.getScanDirectory() != null) {
+            dir = BugAuditScanner.getScanDirectory();
         } else {
             dir = Paths.get("").toAbsolutePath().toFile();
         }
