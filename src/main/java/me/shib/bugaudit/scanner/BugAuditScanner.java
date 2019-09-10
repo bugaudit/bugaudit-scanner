@@ -66,11 +66,19 @@ public abstract class BugAuditScanner {
         return scanDir;
     }
 
+    protected static String getBuildScript() {
+        String bugAuditBuildScript = System.getenv(bugAuditBuildScriptEnv);
+        if (bugAuditBuildScript != null && !bugAuditBuildScript.isEmpty()) {
+            return bugAuditBuildScript;
+        }
+        return null;
+    }
+
     public static String buildProject() throws IOException, InterruptedException, BugAuditException {
-        String bugAuditBuildCommand = System.getenv(bugAuditBuildScriptEnv);
-        if (bugAuditBuildCommand != null && !bugAuditBuildCommand.isEmpty()) {
-            System.out.println("Running: " + bugAuditBuildCommand);
-            CommandRunner commandRunner = new CommandRunner(bugAuditBuildCommand, scanDir, "Building Project");
+        String bugAuditBuildScript = getBuildScript();
+        if (bugAuditBuildScript != null) {
+            System.out.println("Running: " + bugAuditBuildScript);
+            CommandRunner commandRunner = new CommandRunner(bugAuditBuildScript, scanDir, "Building Project");
             if (commandRunner.execute() == 0) {
                 return commandRunner.getResult();
             }
@@ -123,7 +131,7 @@ public abstract class BugAuditScanner {
         throw new BugAuditException("CVE provided is not valid");
     }
 
-    private String readFromFile(File file) throws IOException {
+    protected String readFromFile(File file) throws IOException {
         if (!file.exists() || file.isDirectory()) {
             return "";
         }
