@@ -3,10 +3,7 @@ package me.shib.bugaudit.scanner;
 import me.shib.bugaudit.commons.BugAuditException;
 import org.reflections.Reflections;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
@@ -143,6 +140,12 @@ public abstract class BugAuditScanner {
         }
         br.close();
         return contentBuilder.toString();
+    }
+
+    protected void writeToFile(String content, File file) throws FileNotFoundException {
+        PrintWriter pw = new PrintWriter(file);
+        pw.append(content);
+        pw.close();
     }
 
     public BugAuditScanResult getBugAuditScanResult() {
