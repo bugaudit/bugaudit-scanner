@@ -7,7 +7,7 @@ import java.util.List;
 
 public enum Lang {
 
-    GoLang, Java, JavaScript, Python, Ruby, Unknown;
+    Go, Java, Java_Maven, Java_Gradle, JavaScript, Python, Ruby, Unknown;
 
     private static final String langEnv = "BUGAUDIT_LANG";
     private static Lang lang;
@@ -39,7 +39,9 @@ public enum Lang {
         if (fileArr != null) {
             List<String> files = Arrays.asList(fileArr);
             if (files.contains("pom.xml")) {
-                return Java;
+                return Java_Maven;
+            } else if (files.contains("build.gradle")) {
+                return Java_Gradle;
             } else if (files.contains("Gemfile.lock") || files.contains("Gemfile")) {
                 return Ruby;
             } else if (files.contains("package.json")) {

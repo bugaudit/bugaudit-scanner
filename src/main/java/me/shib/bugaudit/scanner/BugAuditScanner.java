@@ -27,7 +27,7 @@ public abstract class BugAuditScanner {
     private transient BugAuditScanResult bugAuditScanResult;
 
     public BugAuditScanner() throws BugAuditException {
-        this.bugAuditScanResult = new BugAuditScanResult(getTool(), getLang(), GitRepo.getRepo(), getScannerDirLabel());
+        this.bugAuditScanResult = new BugAuditScanResult(getTool(), GitRepo.getRepo(), getScannerDirLabel());
         this.parserOnly = System.getenv(scannerParserOnlyEnv) != null && System.getenv(scannerParserOnlyEnv).equalsIgnoreCase("TRUE");
     }
 
@@ -41,11 +41,7 @@ public abstract class BugAuditScanner {
                     Class<?> clazz = Class.forName(scannerClass.getName());
                     Constructor<?> constructor = clazz.getConstructor();
                     BugAuditScanner bugAuditScanner = (BugAuditScanner) constructor.newInstance();
-                    Lang scannerLang = bugAuditScanner.getLang();
-                    if (scannerLang == null) {
-                        scannerLang = Lang.Unknown;
-                    }
-                    if (scannerLang == lang) {
+                    if (bugAuditScanner.isLangSupported(lang)) {
                         if (specifiedToolName == null || specifiedToolName.isEmpty() ||
                                 specifiedToolName.equalsIgnoreCase(bugAuditScanner.getTool())) {
                             bugAuditScanners.add(bugAuditScanner);
@@ -152,7 +148,7 @@ public abstract class BugAuditScanner {
         return bugAuditScanResult;
     }
 
-    protected abstract Lang getLang();
+    protected abstract boolean isLangSupported(Lang lang);
 
     public abstract String getTool();
 

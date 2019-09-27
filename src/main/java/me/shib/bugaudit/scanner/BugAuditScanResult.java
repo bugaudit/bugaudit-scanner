@@ -16,9 +16,9 @@ public final class BugAuditScanResult {
     private Map<String, Bug> bugMap;
     private String scanPath;
 
-    public BugAuditScanResult(String tool, Lang lang, GitRepo repo, String scanPath) {
+    public BugAuditScanResult(String tool, GitRepo repo, String scanPath) {
         this.tool = tool;
-        this.lang = lang;
+        this.lang = Lang.getCurrentLang();
         this.repo = repo;
         this.typeToPriorityMap = new HashMap<>();
         this.scanPath = scanPath;
