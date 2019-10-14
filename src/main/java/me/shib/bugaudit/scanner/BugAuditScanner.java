@@ -1,6 +1,8 @@
 package me.shib.bugaudit.scanner;
 
+import com.google.gson.Gson;
 import me.shib.bugaudit.commons.BugAuditException;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.reflections.Reflections;
 
 import java.io.*;
@@ -11,6 +13,7 @@ import java.util.Set;
 
 public abstract class BugAuditScanner {
 
+    private static final transient Gson gson = new Gson();
     private static final transient File scanDir;
     private static final transient String scannerParserOnlyEnv = "BUGAUDIT_SCANNER_PARSERONLY";
     private static final transient String scannerToolEnv = "BUGAUDIT_SCANNER_TOOL";
@@ -92,6 +95,25 @@ public abstract class BugAuditScanner {
         return new File(System.getProperty("user.dir"));
     }
 
+    protected String getHash(File file, int lineNo, String type, String[] args) throws IOException {
+        class HashableContent {
+            private String filePath;
+            private String snippet;
+            private String type;
+            private String[] args;
+        }
+        List<String> lines = readLinesFromFile(file);
+        if (lineNo <= lines.size() && lineNo > 0) {
+            HashableContent hashableContent = new HashableContent();
+            hashableContent.type = type;
+            hashableContent.filePath = file.getAbsolutePath().replaceFirst(scanDir.getAbsolutePath(), "");
+            hashableContent.snippet = lines.get(lineNo - 1).trim();
+            hashableContent.args = args;
+            return DigestUtils.sha1Hex(gson.toJson(hashableContent));
+        }
+        return null;
+    }
+
     protected String runCommand(String command) throws IOException, InterruptedException {
         CommandRunner commandRunner;
         if (scanDir != null && scanDir.exists() && scanDir.isDirectory()) {
@@ -124,18 +146,25 @@ public abstract class BugAuditScanner {
         throw new BugAuditException("CVE provided is not valid");
     }
 
+    private List<String> readLinesFromFile(File file) throws IOException {
+        List<String> lines = new ArrayList<>();
+        if (file.exists() && !file.isDirectory()) {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+            br.close();
+        }
+        return lines;
+    }
+
     protected String readFromFile(File file) throws IOException {
-        if (!file.exists() || file.isDirectory()) {
-            return "";
+        StringBuilder content = new StringBuilder();
+        for (String line : readLinesFromFile(file)) {
+            content.append(line).append("\n");
         }
-        StringBuilder contentBuilder = new StringBuilder();
-        BufferedReader br = new BufferedReader(new FileReader(file));
-        String line;
-        while ((line = br.readLine()) != null) {
-            contentBuilder.append(line).append("\n");
-        }
-        br.close();
-        return contentBuilder.toString();
+        return content.toString();
     }
 
     protected void writeToFile(String content, File file) throws FileNotFoundException {
