@@ -96,6 +96,18 @@ public abstract class BugAuditScanner {
     }
 
     protected String getHash(File file, int lineNo, String type, String[] args) throws IOException {
+        return getHash(file, lineNo, lineNo, type, args);
+    }
+
+    protected String getHash(File file, int lineNo, String type) throws IOException {
+        return getHash(file, lineNo, lineNo, type, null);
+    }
+
+    protected String getHash(File file, int startLineNo, int endLineNo, String type) throws IOException {
+        return getHash(file, startLineNo, endLineNo, type, null);
+    }
+
+    protected String getHash(File file, int startLineNo, int endLineNo, String type, String[] args) throws IOException {
         class HashableContent {
             private String filePath;
             private String snippet;
@@ -103,11 +115,16 @@ public abstract class BugAuditScanner {
             private String[] args;
         }
         List<String> lines = readLinesFromFile(file);
-        if (lineNo <= lines.size() && lineNo > 0) {
+        if (startLineNo <= endLineNo && endLineNo <= lines.size() && startLineNo > 0) {
+            StringBuilder snippet = new StringBuilder();
+            snippet.append(lines.get(startLineNo - 1));
+            for (int i = startLineNo; i < endLineNo; i++) {
+                snippet.append("\n").append(lines.get(i));
+            }
             HashableContent hashableContent = new HashableContent();
             hashableContent.type = type;
             hashableContent.filePath = file.getAbsolutePath().replaceFirst(scanDir.getAbsolutePath(), "");
-            hashableContent.snippet = lines.get(lineNo - 1).trim();
+            hashableContent.snippet = snippet.toString();
             hashableContent.args = args;
             return DigestUtils.sha1Hex(gson.toJson(hashableContent));
         }
