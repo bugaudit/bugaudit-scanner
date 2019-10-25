@@ -6,15 +6,19 @@ import java.util.*;
 
 public enum Lang {
 
-    Go("go"), Java("java"), JavaScript("js"),
-    Python("py"), Ruby("rb");
+    Go(new String[]{"go"}), Java(new String[]{"java"}), JavaScript(new String[]{"js"}),
+    Python(new String[]{"py"}), Ruby(new String[]{"rb"}), PHP(new String[]{"php", "php4", "php3", "php3"}),
+    Scala(new String[]{"scala"}), Groovy(new String[]{"groovy"}), Dart(new String[]{"dart"}),
+    Swift(new String[]{"swift"}), Objectiv_C(new String[]{"h", "m"}), Kotlin(new String[]{"kt"}),
+    Lua(new String[]{"lua"}), TypeScript(new String[]{"ts"}), Erlang(new String[]{"erl"}),
+    CoffeeScript(new String[]{"coffee"});
 
     private static final String langEnv = "BUGAUDIT_LANG";
     private static Lang lang;
-    private String extension;
+    private String[] extensions;
 
-    Lang(String extension) {
-        this.extension = extension;
+    Lang(String[] extensions) {
+        this.extensions = extensions;
     }
 
     static synchronized Lang getCurrentLang() {
@@ -93,10 +97,14 @@ public enum Lang {
             traverseAndUpdateExtensionCount(extensionCountMap, dir);
         }
         for (Lang lang : Lang.values()) {
-            Integer count = extensionCountMap.get(lang.extension);
-            if (count != null) {
-                langFilesCountMap.put(lang, extensionCountMap.get(lang.extension));
+            int count = 0;
+            for (String extension : lang.extensions) {
+                Integer extCount = extensionCountMap.get(extension);
+                if (extCount != null) {
+                    count += extCount;
+                }
             }
+            langFilesCountMap.put(lang, count);
         }
         return langFilesCountMap;
     }
